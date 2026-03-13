@@ -267,7 +267,10 @@ class TrackingSynchronizer
                 }
             } catch (LocalizedException $e) {
                 $lastException = $e;
-                if (!$this->isPayloadFormatRetryableError($e->getMessage())) {
+                if (
+                    !$e instanceof AdditionalVerificationRequiredException
+                    && !$this->isPayloadFormatRetryableError($e->getMessage())
+                ) {
                     break;
                 }
             }
