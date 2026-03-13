@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="pynarae" translate="label" sortOrder="900">
+            <label>Pynarae</label>
+        </tab>
+        <section id="pynarae_tracking" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Order Tracking</label>
+            <tab>pynarae</tab>
+            <resource>Pynarae_Tracking::config</resource>
+            <group id="general" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Module</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="debug" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Debug Logging</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="show_external_query_link" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show External Carrier Link</label>
+                    <comment>Display the carrier-hosted tracking URL when available.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="use_live_refresh_on_lookup" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Attempt Live Refresh On Guest Lookup</label>
+                    <comment>If cache is stale, refresh from Track123 during frontend lookup and fall back to cache if refresh fails.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cache_ttl_minutes" translate="label comment" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cache TTL (minutes)</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                </field>
+                <field id="query_stale_after_minutes" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Refresh Stale After (minutes)</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                </field>
+                <field id="max_events_display" translate="label comment" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Max Timeline Events To Display</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                </field>
+            </group>
+            <group id="api" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Track123 API</label>
+                <field id="base_url" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Base URL</label>
+                </field>
+                <field id="api_secret" translate="label comment" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>API Secret</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment>Prefer setting this via `bin/magento config:sensitive:set pynarae_tracking/api/api_secret ...`.</comment>
+                </field>
+                <field id="request_timeout" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Request Timeout (seconds)</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                </field>
+                <field id="connect_timeout" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Connect Timeout (seconds)</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                </field>
+                <field id="auto_detect_carrier" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Auto Detect Carrier</label>
+                    <comment>If a usable courier code is not mapped locally, try Track123 carrier detection.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="carrier_mapping" translate="label comment" type="textarea" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Carrier Mapping</label>
+                    <comment><![CDATA[One mapping per line. Examples:<br/>gofo=gofo<br/>uniuni=uniuni<br/>swiftx=swiftx<br/>custom:GOFO=gofo]]></comment>
+                </field>
+            </group>
+            <group id="sync" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Queue &amp; Sync</label>
+                <field id="auto_register_on_track_save" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Auto Register Tracking On Shipment Track Save</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="process_queue_batch_size" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Queue Batch Size</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                </field>
+                <field id="retry_max_attempts" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Max Retry Attempts</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                </field>
+                <field id="retry_backoff_minutes" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Base Retry Backoff (minutes)</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                </field>
+            </group>
+            <group id="webhook" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Webhook</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Webhook Endpoint</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="strict_signature_validation" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Strict Signature Validation</label>
+                    <comment>Reject webhook calls if signature verification fails.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="signature_mode" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Signature Mode</label>
+                    <comment>Track123 documentation is terse; Auto tries multiple compatible verification formulas.</comment>
+                    <source_model>Pynarae\Tracking\Model\Config\Source\SignatureMode</source_model>
+                </field>
+                <field id="signature_tolerance_seconds" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Timestamp Tolerance (seconds)</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                </field>
+                <field id="log_payloads" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Persist Webhook Payloads</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cleanup_days" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cleanup Retention (days)</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

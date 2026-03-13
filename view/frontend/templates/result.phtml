@@ -1,0 +1,220 @@
+<?php
+/** @var \Magento\Framework\View\Element\Template $block */
+
+$lookupResult = $block->getData('lookup_result');
+$formValues = (array)$block->getData('form_values');
+$queryMode = (string)($formValues['query_mode'] ?? 'order');
+
+if (!$lookupResult) {
+    return;
+}
+
+$get = static function ($source, array $keys, $default = null) {
+    foreach ($keys as $key) {
+        if (is_array($source) && array_key_exists($key, $source) && $source[$key] !== null && $source[$key] !== '') {
+            return $source[$key];
+        }
+        if (is_object($source) && isset($source->{$key}) && $source->{$key} !== null && $source->{$key} !== '') {
+            return $source->{$key};
+        }
+    }
+    return $default;
+};
+
+$events = $get($lookupResult, ['events', 'tracking_events'], []);
+if (!is_array($events)) {
+    $events = [];
+}
+
+$statusCode = (string)$get($lookupResult, ['normalized_status', 'status', 'delivery_status'], 'unknown');
+$statusLabel = (string)$get($lookupResult, ['status_label', 'delivery_status_label'], ucwords(str_replace('_', ' ', $statusCode)));
+$subStatusLabel = (string)$get($lookupResult, ['sub_status_label', 'sub_status', 'delivery_sub_status_label'], '');
+
+$carrierName = (string)$get($lookupResult, ['carrier_name', 'carrier', 'courier_name'], '');
+$carrierCode = (string)$get($lookupResult, ['carrier_code', 'courier_code'], '');
+$trackingNumber = (string)$get($lookupResult, ['tracking_number', 'track_no', 'track_number'], '');
+$externalTrackingUrl = (string)$get($lookupResult, ['external_tracking_url', 'tracking_url', 'carrier_tracking_url'], '');
+
+$estimatedDelivery = (string)$get($lookupResult, ['estimated_delivery_at', 'estimated_delivery', 'eta'], '');
+$lastTrackingTime = (string)$get($lookupResult, ['last_tracking_time', 'last_event_at', 'updated_at'], '');
+$signedBy = (string)$get($lookupResult, ['signed_by'], '');
+
+$orderIncrementId = (string)$get($lookupResult, ['order_increment_id', 'increment_id', 'order_number'], '');
+$orderStatus = (string)$get($lookupResult, ['order_status_label', 'order_status'], '');
+$orderCreatedAt = (string)$get($lookupResult, ['order_created_at', 'created_at'], '');
+
+$summaryTitle = $queryMode === 'tracking' ? (string)__('Shipment Status') : (string)__('Tracking Updates');
+
+$statusClassMap = [
+    'delivered' => 'is-delivered',
+    'in_transit' => 'is-in-transit',
+    'out_for_delivery' => 'is-out-for-delivery',
+    'info_received' => 'is-info-received',
+    'pending' => 'is-pending',
+    'exception' => 'is-exception',
+    'failed_attempt' => 'is-failed-attempt',
+    'expired' => 'is-expired',
+];
+$statusClass = $statusClassMap[$statusCode] ?? '';
+
+$formatDate = static function (?string $value): string {
+    if (!$value) {
+        return '';
+    }
+    try {
+        $dt = new \DateTime($value);
+        return $dt->format('M j, Y g:i A');
+    } catch (\Throwable $e) {
+        return $value;
+    }
+};
+
+$estimatedDeliveryFormatted = $formatDate($estimatedDelivery);
+$lastTrackingTimeFormatted = $formatDate($lastTrackingTime);
+$orderCreatedAtFormatted = $formatDate($orderCreatedAt);
+?>
+
+<div class="pynarae-tracking-results" id="pynarae-tracking-results">
+    <section class="pynarae-tracking-result-summary <?= $queryMode === 'tracking' ? 'pynarae-tracking-result-summary--compact' : '' ?>">
+        <div class="pynarae-tracking-summary-main">
+            <span class="pynarae-tracking-summary-label"><?= $block->escapeHtml($summaryTitle) ?></span>
+            <h2><?= $block->escapeHtml($statusLabel) ?></h2>
+            <?php if ($subStatusLabel): ?>
+                <p class="pynarae-tracking-substatus"><?= $block->escapeHtml($subStatusLabel) ?></p>
+            <?php endif; ?>
+        </div>
+
+        <div class="pynarae-tracking-summary-meta">
+            <?php if ($carrierName): ?>
+                <div class="pynarae-tracking-meta">
+                    <span class="pynarae-tracking-meta-label"><?= $block->escapeHtml(__('Carrier')) ?></span>
+                    <span class="pynarae-tracking-meta-value"><?= $block->escapeHtml($carrierName) ?></span>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($trackingNumber): ?>
+                <div class="pynarae-tracking-meta">
+                    <span class="pynarae-tracking-meta-label"><?= $block->escapeHtml(__('Tracking Number')) ?></span>
+                    <span class="pynarae-tracking-meta-value"><?= $block->escapeHtml($trackingNumber) ?></span>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($lastTrackingTimeFormatted): ?>
+                <div class="pynarae-tracking-meta">
+                    <span class="pynarae-tracking-meta-label"><?= $block->escapeHtml(__('Last Updated')) ?></span>
+                    <span class="pynarae-tracking-meta-value"><?= $block->escapeHtml($lastTrackingTimeFormatted) ?></span>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <section class="pynarae-tracking-result-card">
+        <div class="pynarae-tracking-result-head">
+            <div class="pynarae-tracking-result-title-wrap">
+                <h3><?= $block->escapeHtml($queryMode === 'tracking' ? __('Shipment Details') : __('Order & Shipment Details')) ?></h3>
+
+                <?php if ($trackingNumber): ?>
+                    <p class="pynarae-tracking-trackno">
+                        <?= $block->escapeHtml(__('Tracking Number: %1', $trackingNumber)) ?>
+                    </p>
+                <?php endif; ?>
+
+                <?php if ($queryMode !== 'tracking' && $orderIncrementId): ?>
+                    <p class="pynarae-tracking-trackno">
+                        <?= $block->escapeHtml(__('Order Number: %1', $orderIncrementId)) ?>
+                    </p>
+                <?php endif; ?>
+
+                <?php if ($queryMode !== 'tracking' && $orderStatus): ?>
+                    <p class="pynarae-tracking-substatus">
+                        <?= $block->escapeHtml(__('Order Status: %1', $orderStatus)) ?>
+                    </p>
+                <?php endif; ?>
+            </div>
+
+            <div class="pynarae-tracking-status-pill <?= $block->escapeHtmlAttr($statusClass) ?>">
+                <?= $block->escapeHtml($statusLabel) ?>
+            </div>
+        </div>
+
+        <div class="pynarae-tracking-summary-meta" style="margin-top:18px;">
+            <?php if ($carrierCode && !$carrierName): ?>
+                <div class="pynarae-tracking-meta">
+                    <span class="pynarae-tracking-meta-label"><?= $block->escapeHtml(__('Carrier Code')) ?></span>
+                    <span class="pynarae-tracking-meta-value"><?= $block->escapeHtml($carrierCode) ?></span>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($estimatedDeliveryFormatted): ?>
+                <div class="pynarae-tracking-meta">
+                    <span class="pynarae-tracking-meta-label"><?= $block->escapeHtml(__('Estimated Delivery')) ?></span>
+                    <span class="pynarae-tracking-meta-value"><?= $block->escapeHtml($estimatedDeliveryFormatted) ?></span>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($signedBy): ?>
+                <div class="pynarae-tracking-meta">
+                    <span class="pynarae-tracking-meta-label"><?= $block->escapeHtml(__('Signed By')) ?></span>
+                    <span class="pynarae-tracking-meta-value"><?= $block->escapeHtml($signedBy) ?></span>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($queryMode !== 'tracking' && $orderCreatedAtFormatted): ?>
+                <div class="pynarae-tracking-meta">
+                    <span class="pynarae-tracking-meta-label"><?= $block->escapeHtml(__('Order Placed')) ?></span>
+                    <span class="pynarae-tracking-meta-value"><?= $block->escapeHtml($orderCreatedAtFormatted) ?></span>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <?php if ($externalTrackingUrl): ?>
+            <div class="pyn-track-actions" style="margin-top:20px;">
+                <a class="pyn-track-btn" href="<?= $block->escapeUrl($externalTrackingUrl) ?>" target="_blank" rel="noopener noreferrer">
+                    <?= $block->escapeHtml(__('Open Carrier Tracking')) ?>
+                </a>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($events)): ?>
+            <ul class="pynarae-tracking-timeline">
+                <?php foreach ($events as $event): ?>
+                    <?php
+                    $eventTime = (string)$get($event, ['time', 'event_time', 'date', 'created_at'], '');
+                    $eventDesc = (string)$get($event, ['description', 'desc', 'status_description', 'content'], '');
+                    $eventLocation = (string)$get($event, ['location', 'address', 'city', 'location_name'], '');
+                    ?>
+                    <li class="pynarae-tracking-timeline-item">
+                        <?php if ($eventTime): ?>
+                            <span class="pynarae-tracking-event-time"><?= $block->escapeHtml($formatDate($eventTime)) ?></span>
+                        <?php endif; ?>
+
+                        <div class="pynarae-tracking-event-desc">
+                            <?= $block->escapeHtml($eventDesc ?: __('Tracking event update')) ?>
+                        </div>
+
+                        <?php if ($eventLocation): ?>
+                            <div class="pynarae-tracking-event-location">
+                                <?= $block->escapeHtml($eventLocation) ?>
+                            </div>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php else: ?>
+            <p class="pynarae-tracking-noevents" style="margin-top:20px;">
+                <?= $block->escapeHtml(__('We have not received detailed tracking events for this shipment yet. Please check again later.')) ?>
+            </p>
+        <?php endif; ?>
+    </section>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var result = document.getElementById('pynarae-tracking-results');
+    if (result) {
+        setTimeout(function () {
+            result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 120);
+    }
+});
+</script>

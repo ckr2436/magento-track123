@@ -1,0 +1,302 @@
+<?php
+/** @var \Magento\Framework\View\Element\Template $block */
+$request = $block->getRequest();
+
+$formValues = (array)$block->getData('form_values');
+$lookupError = (string)$block->getData('lookup_error');
+$lookupChallenge = $block->getData('lookup_challenge');
+$hasChallenge = is_array($lookupChallenge) && !empty($lookupChallenge);
+
+$queryMode = (string)($formValues['query_mode'] ?? $request->getParam('query_mode', 'order'));
+if (!in_array($queryMode, ['order', 'tracking'], true)) {
+    $queryMode = 'order';
+}
+
+$incrementId = (string)($formValues['increment_id'] ?? '');
+$emailOrPhone = (string)($formValues['email_or_phone'] ?? '');
+$trackingNumber = (string)($formValues['tracking_number'] ?? '');
+
+$verificationPostalCode = (string)($formValues['verification_postal_code'] ?? '');
+$verificationPhoneSuffix = (string)($formValues['verification_phone_suffix'] ?? '');
+
+$requiresPostalCode = $hasChallenge && (bool)($lookupChallenge['requires_postal_code'] ?? false);
+$requiresPhoneSuffix = $hasChallenge && (bool)($lookupChallenge['requires_phone_suffix'] ?? false);
+$challengeTitle = $hasChallenge ? (string)($lookupChallenge['title'] ?? '') : '';
+$challengeMessage = $hasChallenge ? (string)($lookupChallenge['message'] ?? '') : '';
+
+$alertTitle = '';
+$alertBody = '';
+
+if ($lookupError !== '') {
+    if ($queryMode === 'tracking') {
+        $alertTitle = (string)__('Tracking number not found');
+        $alertBody = (string)__('We could not find that tracking number in shipments created by this store. Please check the number and try again.');
+    } else {
+        $alertTitle = (string)__('Order details not found');
+        $alertBody = (string)__('We could not match that order number with the email address or phone number provided. Please check your details and try again.');
+    }
+}
+
+$actionUrl = $block->getUrl('track-order/lookup');
+?>
+
+<div class="pyn-track-page">
+    <section class="pyn-track-hero">
+        <p class="pyn-track-eyebrow"><?= $block->escapeHtml(__('Order Tracking')) ?></p>
+        <h1 class="pyn-track-title"><?= $block->escapeHtml(__('Track Your Order')) ?></h1>
+        <p class="pyn-track-subtitle">
+            <?= $block->escapeHtml(__('Check the latest shipping updates for your PYNARAE order.')) ?>
+        </p>
+    </section>
+
+    <section class="pyn-track-card">
+        <div class="pyn-track-tabs" role="tablist" aria-label="<?= $block->escapeHtmlAttr(__('Tracking lookup method')) ?>">
+            <button
+                type="button"
+                class="pyn-track-tab <?= $queryMode === 'order' ? 'is-active' : '' ?>"
+                role="tab"
+                aria-selected="<?= $queryMode === 'order' ? 'true' : 'false' ?>"
+                aria-controls="pyn-track-panel-order"
+                id="pyn-track-tab-order"
+                data-tab-target="pyn-track-panel-order">
+                <?= $block->escapeHtml(__('Order Number')) ?>
+            </button>
+
+            <button
+                type="button"
+                class="pyn-track-tab <?= $queryMode === 'tracking' ? 'is-active' : '' ?>"
+                role="tab"
+                aria-selected="<?= $queryMode === 'tracking' ? 'true' : 'false' ?>"
+                aria-controls="pyn-track-panel-tracking"
+                id="pyn-track-tab-tracking"
+                data-tab-target="pyn-track-panel-tracking">
+                <?= $block->escapeHtml(__('Tracking Number')) ?>
+            </button>
+        </div>
+
+        <?php if ($lookupError !== ''): ?>
+            <div class="pyn-track-alert pyn-track-alert--error" id="pyn-track-alert">
+                <div class="pyn-track-alert-icon" aria-hidden="true">!</div>
+                <div class="pyn-track-alert-content">
+                    <h3><?= $block->escapeHtml($alertTitle) ?></h3>
+                    <p><?= $block->escapeHtml($alertBody) ?></p>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($hasChallenge): ?>
+            <div class="pyn-track-alert pyn-track-alert--warning" id="pyn-track-alert">
+                <div class="pyn-track-alert-icon pyn-track-alert-icon--warning" aria-hidden="true">!</div>
+                <div class="pyn-track-alert-content">
+                    <h3><?= $block->escapeHtml($challengeTitle) ?></h3>
+                    <p><?= $block->escapeHtml($challengeMessage) ?></p>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <div class="pyn-track-panels">
+            <div
+                class="pyn-track-panel <?= $queryMode === 'order' ? 'is-active' : '' ?>"
+                id="pyn-track-panel-order"
+                role="tabpanel"
+                aria-labelledby="pyn-track-tab-order">
+
+                <p class="pyn-track-panel-text">
+                    <?= $block->escapeHtml(__('Use your order number together with the email address or phone number used at checkout.')) ?>
+                </p>
+
+                <form method="post" action="<?= $block->escapeUrl($actionUrl) ?>" autocomplete="off" novalidate>
+                    <?= $block->getBlockHtml('formkey') ?>
+                    <input type="hidden" name="query_mode" value="order"/>
+
+                    <div class="pyn-track-grid pyn-track-grid--2">
+                        <div class="pyn-track-field">
+                            <label for="pyn_order_number"><?= $block->escapeHtml(__('Order Number')) ?></label>
+                            <input
+                                id="pyn_order_number"
+                                name="increment_id"
+                                type="text"
+                                maxlength="64"
+                                value="<?= $block->escapeHtmlAttr($incrementId) ?>"
+                                placeholder="<?= $block->escapeHtmlAttr(__('e.g. 000000123')) ?>"
+                                class="<?= $lookupError !== '' && $queryMode === 'order' ? 'is-invalid' : '' ?>"
+                                required />
+                        </div>
+
+                        <div class="pyn-track-field">
+                            <label for="pyn_email_or_phone"><?= $block->escapeHtml(__('Email or Phone')) ?></label>
+                            <input
+                                id="pyn_email_or_phone"
+                                name="email_or_phone"
+                                type="text"
+                                maxlength="128"
+                                value="<?= $block->escapeHtmlAttr($emailOrPhone) ?>"
+                                placeholder="<?= $block->escapeHtmlAttr(__('you@example.com or +1 555 123 4567')) ?>"
+                                class="<?= $lookupError !== '' && $queryMode === 'order' ? 'is-invalid' : '' ?>"
+                                required />
+                        </div>
+                    </div>
+
+                    <?php if ($hasChallenge && $queryMode === 'order'): ?>
+                        <div class="pyn-track-verification">
+                            <p class="pyn-track-verification-title"><?= $block->escapeHtml(__('Carrier verification')) ?></p>
+
+                            <div class="pyn-track-grid pyn-track-grid--2">
+                                <?php if ($requiresPostalCode): ?>
+                                    <div class="pyn-track-field">
+                                        <label for="pyn_order_postal_code"><?= $block->escapeHtml(__('Destination ZIP / Postal Code')) ?></label>
+                                        <input
+                                            id="pyn_order_postal_code"
+                                            name="verification_postal_code"
+                                            type="text"
+                                            maxlength="15"
+                                            value="<?= $block->escapeHtmlAttr($verificationPostalCode) ?>"
+                                            placeholder="<?= $block->escapeHtmlAttr(__('ZIP / Postal Code')) ?>"
+                                            class="is-invalid"
+                                            required />
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if ($requiresPhoneSuffix): ?>
+                                    <div class="pyn-track-field">
+                                        <label for="pyn_order_phone_suffix"><?= $block->escapeHtml(__('Last 4 digits of phone')) ?></label>
+                                        <input
+                                            id="pyn_order_phone_suffix"
+                                            name="verification_phone_suffix"
+                                            type="text"
+                                            inputmode="numeric"
+                                            pattern="[0-9]*"
+                                            maxlength="4"
+                                            value="<?= $block->escapeHtmlAttr($verificationPhoneSuffix) ?>"
+                                            placeholder="<?= $block->escapeHtmlAttr(__('e.g. 4567')) ?>"
+                                            class="is-invalid"
+                                            required />
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="pyn-track-actions">
+                        <button class="pyn-track-btn" type="submit">
+                            <?= $block->escapeHtml(__('Check Status')) ?>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div
+                class="pyn-track-panel <?= $queryMode === 'tracking' ? 'is-active' : '' ?>"
+                id="pyn-track-panel-tracking"
+                role="tabpanel"
+                aria-labelledby="pyn-track-tab-tracking">
+
+                <p class="pyn-track-panel-text">
+                    <?= $block->escapeHtml(__('We only return results for tracking numbers that belong to shipments created in this store.')) ?>
+                </p>
+
+                <form method="post" action="<?= $block->escapeUrl($actionUrl) ?>" autocomplete="off" novalidate>
+                    <?= $block->getBlockHtml('formkey') ?>
+                    <input type="hidden" name="query_mode" value="tracking"/>
+
+                    <div class="pyn-track-grid">
+                        <div class="pyn-track-field">
+                            <label for="pyn_tracking_number"><?= $block->escapeHtml(__('Tracking Number')) ?></label>
+                            <input
+                                id="pyn_tracking_number"
+                                name="tracking_number"
+                                type="text"
+                                maxlength="128"
+                                value="<?= $block->escapeHtmlAttr($trackingNumber) ?>"
+                                placeholder="<?= $block->escapeHtmlAttr(__('e.g. 1Z9999W99999999999')) ?>"
+                                class="<?= $lookupError !== '' && $queryMode === 'tracking' ? 'is-invalid' : '' ?>"
+                                required />
+                        </div>
+                    </div>
+
+                    <?php if ($hasChallenge && $queryMode === 'tracking'): ?>
+                        <div class="pyn-track-verification">
+                            <p class="pyn-track-verification-title"><?= $block->escapeHtml(__('Carrier verification')) ?></p>
+
+                            <div class="pyn-track-grid pyn-track-grid--2">
+                                <?php if ($requiresPostalCode): ?>
+                                    <div class="pyn-track-field">
+                                        <label for="pyn_tracking_postal_code"><?= $block->escapeHtml(__('Destination ZIP / Postal Code')) ?></label>
+                                        <input
+                                            id="pyn_tracking_postal_code"
+                                            name="verification_postal_code"
+                                            type="text"
+                                            maxlength="15"
+                                            value="<?= $block->escapeHtmlAttr($verificationPostalCode) ?>"
+                                            placeholder="<?= $block->escapeHtmlAttr(__('ZIP / Postal Code')) ?>"
+                                            class="is-invalid"
+                                            required />
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if ($requiresPhoneSuffix): ?>
+                                    <div class="pyn-track-field">
+                                        <label for="pyn_tracking_phone_suffix"><?= $block->escapeHtml(__('Last 4 digits of phone')) ?></label>
+                                        <input
+                                            id="pyn_tracking_phone_suffix"
+                                            name="verification_phone_suffix"
+                                            type="text"
+                                            inputmode="numeric"
+                                            pattern="[0-9]*"
+                                            maxlength="4"
+                                            value="<?= $block->escapeHtmlAttr($verificationPhoneSuffix) ?>"
+                                            placeholder="<?= $block->escapeHtmlAttr(__('e.g. 4567')) ?>"
+                                            class="is-invalid"
+                                            required />
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <p class="pyn-track-note">
+                        <?= $block->escapeHtml(__('For privacy, tracking lookup shows shipment progress only and does not expose order-level customer details.')) ?>
+                    </p>
+
+                    <div class="pyn-track-actions">
+                        <button class="pyn-track-btn" type="submit">
+                            <?= $block->escapeHtml(__('Check Status')) ?>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var tabs = document.querySelectorAll('.pyn-track-tab');
+    var panels = document.querySelectorAll('.pyn-track-panel');
+
+    function activateTab(targetId) {
+        tabs.forEach(function (tab) {
+            var active = tab.getAttribute('data-tab-target') === targetId;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+
+        panels.forEach(function (panel) {
+            panel.classList.toggle('is-active', panel.id === targetId);
+        });
+    }
+
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            activateTab(tab.getAttribute('data-tab-target'));
+        });
+    });
+
+    var alertBox = document.getElementById('pyn-track-alert');
+    if (alertBox) {
+        setTimeout(function () {
+            alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 120);
+    }
+});
+</script>
