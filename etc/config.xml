@@ -13,7 +13,7 @@
                 <max_events_display>8</max_events_display>
             </general>
             <api>
-                <base_url>https://api.track123.com/gateway/open-api/tk/v2</base_url>
+                <base_url>https://api.track123.com/gateway/open-api/tk/v2.1</base_url>
                 <request_timeout>15</request_timeout>
                 <connect_timeout>5</connect_timeout>
                 <auto_detect_carrier>1</auto_detect_carrier>

@@ -139,6 +139,11 @@ php bin/magento cache:flush
 
 /track-order/webhook
 
+
+## API integration reference
+
+- See `TRACK123_API_REFERENCE.md` for a module-focused Track123 API reference and a concrete list of fields sent during registration.
+
 ## Development notes
 
 This repository is intended to be edited by humans and AI coding agents.

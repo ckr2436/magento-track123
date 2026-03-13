@@ -82,12 +82,23 @@ class Track123Client
 
         $url = $this->config->getApiBaseUrl($storeId) . $path;
         $body = (string)json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $maskedPayload = $this->maskPayloadForLogs($payload);
+
+        if ($this->config->isDebug($storeId)) {
+            $this->logger->info('Track123 request prepared', [
+                'path' => $path,
+                'url' => $url,
+                'payload' => $maskedPayload,
+            ]);
+        }
 
         try {
             $curl->post($url, $body);
         } catch (\Throwable $e) {
             $this->logger->error('Track123 HTTP transport error', [
                 'path' => $path,
+                'url' => $url,
+                'payload' => $maskedPayload,
                 'exception' => $e,
             ]);
             throw new LocalizedException(__('Track123 request failed: %1', $e->getMessage()));
@@ -100,7 +111,9 @@ class Track123Client
         if (!is_array($decoded)) {
             $this->logger->error('Track123 returned invalid JSON', [
                 'path' => $path,
+                'url' => $url,
                 'status' => $status,
+                'payload' => $maskedPayload,
                 'body' => $responseBody,
             ]);
             throw new LocalizedException(__('Track123 returned invalid JSON. HTTP %1', $status));
@@ -119,7 +132,9 @@ class Track123Client
             $message = $this->extractErrorMessage($decoded);
             $this->logger->error('Track123 returned an error', [
                 'path' => $path,
+                'url' => $url,
                 'status' => $status,
+                'payload' => $maskedPayload,
                 'response' => $decoded,
             ]);
             throw new LocalizedException(__('Track123 error: %1', $message));
@@ -128,7 +143,9 @@ class Track123Client
         if ($this->config->isDebug($storeId)) {
             $this->logger->info('Track123 request success', [
                 'path' => $path,
+                'url' => $url,
                 'status' => $status,
+                'payload' => $maskedPayload,
             ]);
         }
 
@@ -252,6 +269,59 @@ class Track123Client
         }
 
         return $result;
+    }
+
+
+    /**
+     * @param array<string, mixed>|array<int, array<string, mixed>> $payload
+     * @return array<string, mixed>|array<int, array<string, mixed>>
+     */
+    private function maskPayloadForLogs(array $payload): array
+    {
+        $maskFields = ['trackNo', 'tracking_number', 'orderNo', 'orderNos', 'trackNos', 'postalCode', 'phoneSuffix', 'customerEmail'];
+
+        $walker = function (mixed $value, string $key = '') use (&$walker, $maskFields): mixed {
+            if (is_array($value)) {
+                $result = [];
+                foreach ($value as $itemKey => $itemValue) {
+                    $result[$itemKey] = $walker($itemValue, (string)$itemKey);
+                }
+                return $result;
+            }
+
+            if (!is_scalar($value)) {
+                return $value;
+            }
+
+            if (!in_array($key, $maskFields, true)) {
+                return $value;
+            }
+
+            $stringValue = trim((string)$value);
+            if ($stringValue === '') {
+                return $value;
+            }
+
+            if ($key === 'customerEmail') {
+                $parts = explode('@', $stringValue, 2);
+                if (count($parts) !== 2) {
+                    return '***';
+                }
+                $name = $parts[0];
+                $domain = $parts[1];
+                $nameMasked = mb_substr($name, 0, 1) . '***';
+                return $nameMasked . '@' . $domain;
+            }
+
+            if (mb_strlen($stringValue) <= 4) {
+                return '***';
+            }
+
+            return str_repeat('*', max(0, mb_strlen($stringValue) - 4)) . mb_substr($stringValue, -4);
+        };
+
+        $masked = $walker($payload);
+        return is_array($masked) ? $masked : $payload;
     }
 
     /**

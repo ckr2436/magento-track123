@@ -40,15 +40,7 @@ class TrackingSynchronizer
 
         $courierCode = $this->courierCodeResolver->resolve($track, $storeId);
         if ($courierCode === null && $this->config->shouldAutoDetectCarrier($storeId)) {
-            try {
-                $detect = $this->track123Client->detectCourier(['trackNo' => $trackingNumber], $storeId);
-                $courierCode = $this->extractDetectedCode($detect);
-            } catch (\Throwable $e) {
-                $this->logger->warning('Track123 carrier detection failed', [
-                    'track_id' => $track->getId(),
-                    'exception' => $e,
-                ]);
-            }
+            $courierCode = $this->detectCourierCode($trackingNumber, (int)$track->getId(), $storeId);
         }
 
         $payload = [
@@ -251,6 +243,33 @@ class TrackingSynchronizer
             $normalized['phone_suffix'] = true;
         }
         return $normalized;
+    }
+
+
+    private function detectCourierCode(string $trackingNumber, int $trackId, ?int $storeId = null): ?string
+    {
+        $attemptPayloads = [
+            ['tracking_number' => $trackingNumber],
+            ['trackNo' => $trackingNumber],
+        ];
+
+        foreach ($attemptPayloads as $payload) {
+            try {
+                $detect = $this->track123Client->detectCourier($payload, $storeId);
+                $code = $this->extractDetectedCode($detect);
+                if ($code !== null) {
+                    return $code;
+                }
+            } catch (\Throwable $e) {
+                $this->logger->warning('Track123 carrier detection failed', [
+                    'track_id' => $trackId,
+                    'payload_keys' => array_keys($payload),
+                    'exception' => $e,
+                ]);
+            }
+        }
+
+        return null;
     }
 
     /**
