@@ -253,7 +253,12 @@ class TrackingSynchronizer
             ['trackNo' => $trackingNumber],
         ];
 
+        $attemptedPayloadKeys = [];
+        $lastException = null;
+
         foreach ($attemptPayloads as $payload) {
+            $attemptedPayloadKeys[] = array_keys($payload);
+
             try {
                 $detect = $this->track123Client->detectCourier($payload, $storeId);
                 $code = $this->extractDetectedCode($detect);
@@ -261,15 +266,51 @@ class TrackingSynchronizer
                     return $code;
                 }
             } catch (\Throwable $e) {
-                $this->logger->warning('Track123 carrier detection failed', [
-                    'track_id' => $trackId,
-                    'payload_keys' => array_keys($payload),
-                    'exception' => $e,
-                ]);
+                $lastException = $e;
+                if (!$e instanceof LocalizedException) {
+                    break;
+                }
+
+                if (!$this->shouldRetryCourierDetection($e)) {
+                    break;
+                }
             }
         }
 
+        if ($lastException !== null) {
+            $this->logger->warning('Track123 carrier detection failed', [
+                'track_id' => $trackId,
+                'attempted_payload_keys' => $attemptedPayloadKeys,
+                'exception' => $lastException,
+            ]);
+        }
+
         return null;
+    }
+
+    private function shouldRetryCourierDetection(LocalizedException $exception): bool
+    {
+        if ($exception instanceof AdditionalVerificationRequiredException) {
+            return true;
+        }
+
+        $message = mb_strtolower($exception->getMessage());
+
+        // Retry fallback payload unless we are certain the failure is unrelated
+        // to payload shape compatibility.
+        $nonRetryableMarkers = [
+            'api secret is not configured',
+            'request failed',
+            'returned invalid json',
+        ];
+
+        foreach ($nonRetryableMarkers as $marker) {
+            if (str_contains($message, $marker)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
