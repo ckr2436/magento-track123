@@ -267,10 +267,7 @@ class TrackingSynchronizer
                 }
             } catch (LocalizedException $e) {
                 $lastException = $e;
-                if (
-                    !$e instanceof AdditionalVerificationRequiredException
-                    && !$this->isPayloadFormatRetryableError($e->getMessage())
-                ) {
+                if (!$this->shouldRetryCourierDetection($e)) {
                     break;
                 }
             }
@@ -287,28 +284,29 @@ class TrackingSynchronizer
         return null;
     }
 
-    private function isPayloadFormatRetryableError(string $message): bool
+    private function shouldRetryCourierDetection(LocalizedException $exception): bool
     {
-        $message = mb_strtolower($message);
-        $payloadErrorKeywords = [
-            'trackno',
-            'tracking_number',
-            'tracking number',
-            'invalid param',
-            'invalid parameter',
-            'missing param',
-            'missing parameter',
-            'required field',
-            'required parameter',
+        if ($exception instanceof AdditionalVerificationRequiredException) {
+            return true;
+        }
+
+        $message = mb_strtolower($exception->getMessage());
+
+        // Retry fallback payload unless we are certain the failure is unrelated
+        // to payload shape compatibility.
+        $nonRetryableMarkers = [
+            'api secret is not configured',
+            'request failed',
+            'returned invalid json',
         ];
 
-        foreach ($payloadErrorKeywords as $keyword) {
-            if (str_contains($message, $keyword)) {
-                return true;
+        foreach ($nonRetryableMarkers as $marker) {
+            if (str_contains($message, $marker)) {
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
     /**
