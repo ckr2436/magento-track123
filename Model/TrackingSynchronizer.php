@@ -265,8 +265,12 @@ class TrackingSynchronizer
                 if ($code !== null) {
                     return $code;
                 }
-            } catch (LocalizedException $e) {
+            } catch (\Throwable $e) {
                 $lastException = $e;
+                if (!$e instanceof LocalizedException) {
+                    break;
+                }
+
                 if (!$this->shouldRetryCourierDetection($e)) {
                     break;
                 }
