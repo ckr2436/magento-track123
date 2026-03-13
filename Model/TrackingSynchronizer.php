@@ -253,23 +253,59 @@ class TrackingSynchronizer
             ['trackNo' => $trackingNumber],
         ];
 
+        $attemptedPayloadKeys = [];
+        $lastException = null;
+
         foreach ($attemptPayloads as $payload) {
+            $attemptedPayloadKeys[] = array_keys($payload);
+
             try {
                 $detect = $this->track123Client->detectCourier($payload, $storeId);
                 $code = $this->extractDetectedCode($detect);
                 if ($code !== null) {
                     return $code;
                 }
-            } catch (\Throwable $e) {
-                $this->logger->warning('Track123 carrier detection failed', [
-                    'track_id' => $trackId,
-                    'payload_keys' => array_keys($payload),
-                    'exception' => $e,
-                ]);
+            } catch (LocalizedException $e) {
+                $lastException = $e;
+                if (!$this->isPayloadFormatRetryableError($e->getMessage())) {
+                    break;
+                }
             }
         }
 
+        if ($lastException !== null) {
+            $this->logger->warning('Track123 carrier detection failed', [
+                'track_id' => $trackId,
+                'attempted_payload_keys' => $attemptedPayloadKeys,
+                'exception' => $lastException,
+            ]);
+        }
+
         return null;
+    }
+
+    private function isPayloadFormatRetryableError(string $message): bool
+    {
+        $message = mb_strtolower($message);
+        $payloadErrorKeywords = [
+            'trackno',
+            'tracking_number',
+            'tracking number',
+            'invalid param',
+            'invalid parameter',
+            'missing param',
+            'missing parameter',
+            'required field',
+            'required parameter',
+        ];
+
+        foreach ($payloadErrorKeywords as $keyword) {
+            if (str_contains($message, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
