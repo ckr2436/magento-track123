@@ -281,10 +281,13 @@ class Track123Client
         $maskFields = ['trackNo', 'tracking_number', 'orderNo', 'orderNos', 'trackNos', 'postalCode', 'phoneSuffix', 'customerEmail'];
 
         $walker = function (mixed $value, string $key = '') use (&$walker, $maskFields): mixed {
+            $isSensitiveKey = in_array($key, $maskFields, true);
+
             if (is_array($value)) {
                 $result = [];
                 foreach ($value as $itemKey => $itemValue) {
-                    $result[$itemKey] = $walker($itemValue, (string)$itemKey);
+                    $childKey = $isSensitiveKey ? $key : (string)$itemKey;
+                    $result[$itemKey] = $walker($itemValue, $childKey);
                 }
                 return $result;
             }
@@ -293,7 +296,7 @@ class Track123Client
                 return $value;
             }
 
-            if (!in_array($key, $maskFields, true)) {
+            if (!$isSensitiveKey) {
                 return $value;
             }
 
