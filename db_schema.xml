@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="pynarae_tracking_cache" resource="default" engine="innodb" comment="Pynarae Tracking Cache">
+        <column xsi:type="int" name="entity_id" nullable="false" identity="true" unsigned="true" comment="Entity ID"/>
+        <column xsi:type="smallint" name="store_id" nullable="true" unsigned="true" comment="Store ID"/>
+        <column xsi:type="int" name="order_id" nullable="true" unsigned="true" comment="Order ID"/>
+        <column xsi:type="varchar" name="order_increment_id" nullable="true" length="64" comment="Order Increment ID"/>
+        <column xsi:type="int" name="shipment_id" nullable="true" unsigned="true" comment="Shipment ID"/>
+        <column xsi:type="int" name="track_id" nullable="true" unsigned="true" comment="Shipment Track ID"/>
+        <column xsi:type="varchar" name="tracking_number" nullable="false" length="128" comment="Tracking Number"/>
+        <column xsi:type="varchar" name="carrier_code" nullable="true" length="128" comment="Carrier Code"/>
+        <column xsi:type="varchar" name="carrier_name" nullable="true" length="255" comment="Carrier Name"/>
+        <column xsi:type="varchar" name="normalized_status" nullable="true" length="64" comment="Normalized Status"/>
+        <column xsi:type="varchar" name="transit_status" nullable="true" length="128" comment="Track123 Transit Status"/>
+        <column xsi:type="varchar" name="transit_sub_status" nullable="true" length="255" comment="Track123 Transit Sub Status"/>
+        <column xsi:type="varchar" name="signed_by" nullable="true" length="255" comment="Signed By"/>
+        <column xsi:type="varchar" name="external_query_url" nullable="true" length="1024" comment="Carrier Query URL"/>
+        <column xsi:type="varchar" name="carrier_homepage" nullable="true" length="1024" comment="Carrier Homepage"/>
+        <column xsi:type="varchar" name="carrier_logo" nullable="true" length="1024" comment="Carrier Logo"/>
+        <column xsi:type="int" name="transit_days" nullable="true" comment="Transit Days"/>
+        <column xsi:type="int" name="stay_days" nullable="true" comment="Stay Days"/>
+        <column xsi:type="timestamp" name="last_tracking_time" nullable="true" comment="Last Tracking Time"/>
+        <column xsi:type="timestamp" name="delivery_date" nullable="true" comment="Delivery Date"/>
+        <column xsi:type="smallint" name="is_registered" nullable="false" default="0" comment="Registered In Track123"/>
+        <column xsi:type="timestamp" name="last_registered_at" nullable="true" comment="Last Registered At"/>
+        <column xsi:type="timestamp" name="last_synced_at" nullable="true" comment="Last Synced At"/>
+        <column xsi:type="mediumtext" name="events_json" nullable="true" comment="Normalized Events JSON"/>
+        <column xsi:type="mediumtext" name="raw_response_json" nullable="true" comment="Raw Track123 Payload JSON"/>
+        <column xsi:type="text" name="sync_error" nullable="true" comment="Last Sync Error"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="false" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="true" comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="PYNARAE_TRACKING_CACHE_TRACK_ID_UNQ">
+            <column name="track_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="PYNARAE_TRACKING_CACHE_STORE_ID_STORE_STORE_ID"
+                    table="pynarae_tracking_cache" column="store_id"
+                    referenceTable="store" referenceColumn="store_id"
+                    onDelete="SET NULL"/>
+        <constraint xsi:type="foreign" referenceId="PYNARAE_TRACKING_CACHE_ORDER_ID_SALES_ORDER_ENTITY_ID"
+                    table="pynarae_tracking_cache" column="order_id"
+                    referenceTable="sales_order" referenceColumn="entity_id"
+                    onDelete="SET NULL"/>
+        <constraint xsi:type="foreign" referenceId="PYNARAE_TRACKING_CACHE_SHIPMENT_ID_SALES_SHIPMENT_ENTITY_ID"
+                    table="pynarae_tracking_cache" column="shipment_id"
+                    referenceTable="sales_shipment" referenceColumn="entity_id"
+                    onDelete="SET NULL"/>
+        <constraint xsi:type="foreign" referenceId="PYNARAE_TRACKING_CACHE_TRACK_ID_SALES_SHIPMENT_TRACK_ENTITY_ID"
+                    table="pynarae_tracking_cache" column="track_id"
+                    referenceTable="sales_shipment_track" referenceColumn="entity_id"
+                    onDelete="CASCADE"/>
+        <index referenceId="PYNARAE_TRACKING_CACHE_TRACKING_NUMBER_IDX" indexType="btree">
+            <column name="tracking_number"/>
+        </index>
+        <index referenceId="PYNARAE_TRACKING_CACHE_LAST_SYNCED_AT_IDX" indexType="btree">
+            <column name="last_synced_at"/>
+        </index>
+    </table>
+
+    <table name="pynarae_tracking_job" resource="default" engine="innodb" comment="Pynarae Tracking Job Queue">
+        <column xsi:type="int" name="entity_id" nullable="false" identity="true" unsigned="true" comment="Entity ID"/>
+        <column xsi:type="varchar" name="job_type" nullable="false" length="32" comment="Job Type"/>
+        <column xsi:type="smallint" name="store_id" nullable="true" unsigned="true" comment="Store ID"/>
+        <column xsi:type="int" name="order_id" nullable="true" unsigned="true" comment="Order ID"/>
+        <column xsi:type="int" name="shipment_id" nullable="true" unsigned="true" comment="Shipment ID"/>
+        <column xsi:type="int" name="track_id" nullable="true" unsigned="true" comment="Track ID"/>
+        <column xsi:type="varchar" name="tracking_number" nullable="true" length="128" comment="Tracking Number"/>
+        <column xsi:type="mediumtext" name="payload_json" nullable="true" comment="Payload JSON"/>
+        <column xsi:type="varchar" name="status" nullable="false" length="32" default="pending" comment="Job Status"/>
+        <column xsi:type="int" name="attempts" nullable="false" default="0" unsigned="true" comment="Attempts"/>
+        <column xsi:type="int" name="max_attempts" nullable="false" default="5" unsigned="true" comment="Max Attempts"/>
+        <column xsi:type="timestamp" name="next_run_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="false" comment="Next Run At"/>
+        <column xsi:type="timestamp" name="locked_at" nullable="true" comment="Locked At"/>
+        <column xsi:type="text" name="last_error" nullable="true" comment="Last Error"/>
+        <column xsi:type="varchar" name="unique_hash" nullable="true" length="64" comment="Deduplication Hash"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="false" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="true" comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="PYNARAE_TRACKING_JOB_STORE_ID_STORE_STORE_ID"
+                    table="pynarae_tracking_job" column="store_id"
+                    referenceTable="store" referenceColumn="store_id"
+                    onDelete="SET NULL"/>
+        <constraint xsi:type="foreign" referenceId="PYNARAE_TRACKING_JOB_ORDER_ID_SALES_ORDER_ENTITY_ID"
+                    table="pynarae_tracking_job" column="order_id"
+                    referenceTable="sales_order" referenceColumn="entity_id"
+                    onDelete="SET NULL"/>
+        <constraint xsi:type="foreign" referenceId="PYNARAE_TRACKING_JOB_SHIPMENT_ID_SALES_SHIPMENT_ENTITY_ID"
+                    table="pynarae_tracking_job" column="shipment_id"
+                    referenceTable="sales_shipment" referenceColumn="entity_id"
+                    onDelete="SET NULL"/>
+        <constraint xsi:type="foreign" referenceId="PYNARAE_TRACKING_JOB_TRACK_ID_SALES_SHIPMENT_TRACK_ENTITY_ID"
+                    table="pynarae_tracking_job" column="track_id"
+                    referenceTable="sales_shipment_track" referenceColumn="entity_id"
+                    onDelete="SET NULL"/>
+        <index referenceId="PYNARAE_TRACKING_JOB_STATUS_NEXT_RUN_AT_IDX" indexType="btree">
+            <column name="status"/>
+            <column name="next_run_at"/>
+        </index>
+        <index referenceId="PYNARAE_TRACKING_JOB_UNIQUE_HASH_IDX" indexType="btree">
+            <column name="unique_hash"/>
+        </index>
+    </table>
+
+    <table name="pynarae_tracking_webhook_log" resource="default" engine="innodb" comment="Pynarae Tracking Webhook Log">
+        <column xsi:type="int" name="entity_id" nullable="false" identity="true" unsigned="true" comment="Entity ID"/>
+        <column xsi:type="varchar" name="timestamp_header" nullable="true" length="64" comment="Timestamp Header"/>
+        <column xsi:type="varchar" name="signature_header" nullable="true" length="255" comment="Signature Header"/>
+        <column xsi:type="varchar" name="payload_hash" nullable="true" length="64" comment="Payload Hash"/>
+        <column xsi:type="smallint" name="is_verified" nullable="false" default="0" comment="Verified"/>
+        <column xsi:type="varchar" name="process_status" nullable="false" length="32" default="pending" comment="Process Status"/>
+        <column xsi:type="text" name="error_message" nullable="true" comment="Error Message"/>
+        <column xsi:type="mediumtext" name="payload_json" nullable="true" comment="Payload JSON"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="false" comment="Created At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <index referenceId="PYNARAE_TRACKING_WEBHOOK_CREATED_AT_IDX" indexType="btree">
+            <column name="created_at"/>
+        </index>
+        <index referenceId="PYNARAE_TRACKING_WEBHOOK_PAYLOAD_HASH_IDX" indexType="btree">
+            <column name="payload_hash"/>
+        </index>
+    </table>
+</schema>
