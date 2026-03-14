@@ -7,6 +7,7 @@ namespace Pynarae\Tracking\Model\Carrier;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Xml\Security;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory;
 use Magento\Sales\Model\Order\Shipment\Track;
@@ -34,6 +35,7 @@ class Track123 extends AbstractCarrierOnline
         ResultFactory $trackFactory,
         TrackingErrorFactory $trackErrorFactory,
         StatusFactory $trackStatusFactory,
+        Security $xmlSecurity,
         private readonly StoreTrackingLocator $storeTrackingLocator,
         private readonly TrackingSynchronizer $trackingSynchronizer,
         private readonly TrackingCacheManager $trackingCacheManager,
@@ -42,7 +44,7 @@ class Track123 extends AbstractCarrierOnline
         $this->_trackFactory = $trackFactory;
         $this->_trackErrorFactory = $trackErrorFactory;
         $this->_trackStatusFactory = $trackStatusFactory;
-        parent::__construct($scopeConfig, $rateErrorFactory, $logger, $data);
+        parent::__construct($scopeConfig, $rateErrorFactory, $logger, $xmlSecurity, $data);
     }
 
     public function collectRates(RateRequest $request)
