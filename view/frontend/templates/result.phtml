@@ -21,23 +21,33 @@ $get = static function ($source, array $keys, $default = null) {
     return $default;
 };
 
-$events = $get($lookupResult, ['events', 'tracking_events'], []);
+$primaryTrack = null;
+if (is_array($lookupResult) && isset($lookupResult['tracks']) && is_array($lookupResult['tracks']) && $lookupResult['tracks'] !== []) {
+    $firstTrack = $lookupResult['tracks'][0] ?? null;
+    if (is_array($firstTrack)) {
+        $primaryTrack = $firstTrack;
+    }
+}
+
+$resultSource = $primaryTrack ?: $lookupResult;
+
+$events = $get($resultSource, ['events', 'tracking_events'], []);
 if (!is_array($events)) {
     $events = [];
 }
 
-$statusCode = (string)$get($lookupResult, ['normalized_status', 'status', 'delivery_status'], 'unknown');
-$statusLabel = (string)$get($lookupResult, ['status_label', 'delivery_status_label'], ucwords(str_replace('_', ' ', $statusCode)));
-$subStatusLabel = (string)$get($lookupResult, ['sub_status_label', 'sub_status', 'delivery_sub_status_label'], '');
+$statusCode = (string)$get($resultSource, ['normalized_status', 'status', 'delivery_status'], 'unknown');
+$statusLabel = (string)$get($resultSource, ['status_label', 'delivery_status_label'], ucwords(str_replace('_', ' ', $statusCode)));
+$subStatusLabel = (string)$get($resultSource, ['sub_status_label', 'sub_status', 'delivery_sub_status_label'], '');
 
-$carrierName = (string)$get($lookupResult, ['carrier_name', 'carrier', 'courier_name'], '');
-$carrierCode = (string)$get($lookupResult, ['carrier_code', 'courier_code'], '');
-$trackingNumber = (string)$get($lookupResult, ['tracking_number', 'track_no', 'track_number'], '');
-$externalTrackingUrl = (string)$get($lookupResult, ['external_tracking_url', 'tracking_url', 'carrier_tracking_url'], '');
+$carrierName = (string)$get($resultSource, ['carrier_name', 'carrier', 'courier_name'], '');
+$carrierCode = (string)$get($resultSource, ['carrier_code', 'courier_code'], '');
+$trackingNumber = (string)$get($resultSource, ['tracking_number', 'track_no', 'track_number'], '');
+$externalTrackingUrl = (string)$get($resultSource, ['external_query_url', 'external_tracking_url', 'tracking_url', 'carrier_tracking_url'], '');
 
-$estimatedDelivery = (string)$get($lookupResult, ['estimated_delivery_at', 'estimated_delivery', 'eta'], '');
-$lastTrackingTime = (string)$get($lookupResult, ['last_tracking_time', 'last_event_at', 'updated_at'], '');
-$signedBy = (string)$get($lookupResult, ['signed_by'], '');
+$estimatedDelivery = (string)$get($resultSource, ['estimated_delivery_at', 'estimated_delivery', 'eta'], '');
+$lastTrackingTime = (string)$get($resultSource, ['last_tracking_time', 'last_event_at', 'updated_at'], '');
+$signedBy = (string)$get($resultSource, ['signed_by'], '');
 
 $orderIncrementId = (string)$get($lookupResult, ['order_increment_id', 'increment_id', 'order_number'], '');
 $orderStatus = (string)$get($lookupResult, ['order_status_label', 'order_status'], '');
@@ -180,7 +190,7 @@ $orderCreatedAtFormatted = $formatDate($orderCreatedAt);
                 <?php foreach ($events as $event): ?>
                     <?php
                     $eventTime = (string)$get($event, ['time', 'event_time', 'date', 'created_at'], '');
-                    $eventDesc = (string)$get($event, ['description', 'desc', 'status_description', 'content'], '');
+                    $eventDesc = (string)$get($event, ['detail', 'description', 'desc', 'status_description', 'content'], '');
                     $eventLocation = (string)$get($event, ['location', 'address', 'city', 'location_name'], '');
                     ?>
                     <li class="pynarae-tracking-timeline-item">
