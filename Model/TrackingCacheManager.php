@@ -89,6 +89,7 @@ class TrackingCacheManager
         }
 
         $carrierInfo = is_array($trackData['carrierInfo'] ?? null) ? $trackData['carrierInfo'] : [];
+        $localLogisticsInfo = is_array($trackData['localLogisticsInfo'] ?? null) ? $trackData['localLogisticsInfo'] : [];
         $events = $this->extractEvents($trackData);
         $status = $this->statusNormalizer->normalize(
             (string) ($trackData['transitStatus'] ?? $trackData['deliveryStatus'] ?? ''),
@@ -101,14 +102,14 @@ class TrackingCacheManager
             'order_increment_id' => $context['order_increment_id'] ?? $cache->getData('order_increment_id'),
             'shipment_id' => $context['shipment_id'] ?? $cache->getData('shipment_id'),
             'tracking_number' => $trackData['trackingNumber'] ?? $trackData['trackNo'] ?? $context['tracking_number'] ?? $cache->getData('tracking_number'),
-            'carrier_code' => $carrierInfo['code'] ?? $trackData['courierCode'] ?? $cache->getData('carrier_code'),
-            'carrier_name' => $carrierInfo['name'] ?? $cache->getData('carrier_name'),
+            'carrier_code' => $carrierInfo['code'] ?? $trackData['courierCode'] ?? $localLogisticsInfo['courierCode'] ?? $cache->getData('carrier_code'),
+            'carrier_name' => $carrierInfo['name'] ?? $localLogisticsInfo['courierNameEN'] ?? $localLogisticsInfo['courierNameCN'] ?? $cache->getData('carrier_name'),
             'normalized_status' => $status['normalized_status'],
             'transit_status' => $trackData['transitStatus'] ?? $trackData['deliveryStatus'] ?? null,
             'transit_sub_status' => $trackData['transitSubStatus'] ?? $trackData['deliverySubStatus'] ?? null,
             'signed_by' => $trackData['signedBy'] ?? null,
-            'external_query_url' => $this->buildCarrierQueryUrl($carrierInfo, (string) ($trackData['trackingNumber'] ?? $trackData['trackNo'] ?? '')),
-            'carrier_homepage' => $carrierInfo['homePage'] ?? null,
+            'external_query_url' => $this->buildCarrierQueryUrl($carrierInfo, $localLogisticsInfo, (string) ($trackData['trackingNumber'] ?? $trackData['trackNo'] ?? '')),
+            'carrier_homepage' => $carrierInfo['homePage'] ?? $localLogisticsInfo['courierHomePage'] ?? null,
             'carrier_logo' => $carrierInfo['logo'] ?? null,
             'transit_days' => $trackData['transitDays'] ?? null,
             'stay_days' => $trackData['stayDays'] ?? null,
@@ -140,9 +141,9 @@ class TrackingCacheManager
     /**
      * @param array<string, mixed> $carrierInfo
      */
-    private function buildCarrierQueryUrl(array $carrierInfo, string $trackingNumber): ?string
+    private function buildCarrierQueryUrl(array $carrierInfo, array $localLogisticsInfo, string $trackingNumber): ?string
     {
-        $queryLink = (string) ($carrierInfo['queryLink'] ?? '');
+        $queryLink = (string)($carrierInfo['queryLink'] ?? $localLogisticsInfo['courierTrackingLink'] ?? '');
         if ($queryLink === '') {
             return null;
         }
@@ -174,7 +175,11 @@ class TrackingCacheManager
     private function extractEvents(array $trackData): array
     {
         $events = [];
-        $trackInfo = $trackData['trackInfo'] ?? $trackData['checkpoints'] ?? $trackData['events'] ?? [];
+        $localLogisticsInfo = is_array($trackData['localLogisticsInfo'] ?? null) ? $trackData['localLogisticsInfo'] : [];
+        $trackInfo = $trackData['trackInfo']
+            ?? $trackData['checkpoints']
+            ?? $trackData['events']
+            ?? ($localLogisticsInfo['trackingDetails'] ?? []);
         if (!is_array($trackInfo)) {
             return $events;
         }
@@ -186,7 +191,7 @@ class TrackingCacheManager
             $events[] = [
                 'time' => (string) ($item['eventTime'] ?? $item['time'] ?? ''),
                 'detail' => (string) ($item['eventDetail'] ?? $item['checkpointStatus'] ?? $item['description'] ?? ''),
-                'location' => (string) ($item['eventLocation'] ?? $item['location'] ?? ''),
+                'location' => (string) ($item['eventLocation'] ?? $item['location'] ?? $item['address'] ?? ''),
             ];
         }
 
