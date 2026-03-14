@@ -10,8 +10,10 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Xml\Security;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory;
+use Magento\Quote\Model\Quote\Address\RateResult\MethodFactory;
 use Magento\Sales\Model\Order\Shipment\Track;
 use Magento\Shipping\Model\Carrier\AbstractCarrierOnline;
+use Magento\Shipping\Model\Rate\ResultFactory as RateResultFactory;
 use Magento\Shipping\Model\Simplexml\ElementFactory;
 use Magento\Shipping\Model\Tracking\Result;
 use Magento\Shipping\Model\Tracking\Result\Error;
@@ -38,6 +40,8 @@ class Track123 extends AbstractCarrierOnline
         StatusFactory $trackStatusFactory,
         Security $xmlSecurity,
         ElementFactory $xmlElementFactory,
+        RateResultFactory $rateResultFactory,
+        MethodFactory $rateMethodFactory,
         private readonly StoreTrackingLocator $storeTrackingLocator,
         private readonly TrackingSynchronizer $trackingSynchronizer,
         private readonly TrackingCacheManager $trackingCacheManager,
@@ -46,7 +50,16 @@ class Track123 extends AbstractCarrierOnline
         $this->_trackFactory = $trackFactory;
         $this->_trackErrorFactory = $trackErrorFactory;
         $this->_trackStatusFactory = $trackStatusFactory;
-        parent::__construct($scopeConfig, $rateErrorFactory, $logger, $xmlSecurity, $xmlElementFactory, $data);
+        parent::__construct(
+            $scopeConfig,
+            $rateErrorFactory,
+            $logger,
+            $xmlSecurity,
+            $xmlElementFactory,
+            $rateResultFactory,
+            $rateMethodFactory,
+            $data
+        );
     }
 
     public function collectRates(RateRequest $request)
