@@ -64,6 +64,10 @@ class Track123PayloadExtractor
             return array_values(array_filter($value, 'is_array'));
         }
 
+        if ($this->looksLikeSingleTracking($value)) {
+            return [$value];
+        }
+
         if (isset($value['content']) && is_array($value['content'])) {
             return $this->normalizeTrackingCollection($value['content']);
         }
@@ -72,6 +76,6 @@ class Track123PayloadExtractor
             return $this->normalizeTrackingCollection($value['accepted']);
         }
 
-        return [];
+        return array_values(array_filter($value, 'is_array'));
     }
 }
