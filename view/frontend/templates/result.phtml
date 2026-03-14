@@ -40,6 +40,10 @@ $statusCode = (string)$get($resultSource, ['normalized_status', 'status', 'deliv
 $statusLabel = (string)$get($resultSource, ['status_label', 'delivery_status_label'], ucwords(str_replace('_', ' ', $statusCode)));
 $subStatusLabel = (string)$get($resultSource, ['sub_status_label', 'sub_status', 'delivery_sub_status_label'], '');
 
+if ($subStatusLabel !== '' && preg_match('/^[A-Z0-9_]+$/', $subStatusLabel) === 1) {
+    $subStatusLabel = '';
+}
+
 $carrierName = (string)$get($resultSource, ['carrier_name', 'carrier', 'courier_name'], '');
 $carrierCode = (string)$get($resultSource, ['carrier_code', 'courier_code'], '');
 $trackingNumber = (string)$get($resultSource, ['tracking_number', 'track_no', 'track_number'], '');
