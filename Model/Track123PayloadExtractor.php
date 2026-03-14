@@ -30,12 +30,12 @@ class Track123PayloadExtractor
                 }
                 foreach (['items', 'list', 'trackings', 'content', 'accepted'] as $nestedKey) {
                     if (isset($candidate[$nestedKey]) && is_array($candidate[$nestedKey])) {
-                        return array_values(array_filter($candidate[$nestedKey], 'is_array'));
+                        return $this->normalizeTrackingCollection($candidate[$nestedKey]);
                     }
                 }
 
                 if (isset($candidate['accepted']['content']) && is_array($candidate['accepted']['content'])) {
-                    return array_values(array_filter($candidate['accepted']['content'], 'is_array'));
+                    return $this->normalizeTrackingCollection($candidate['accepted']['content']);
                 }
             }
         }
@@ -52,5 +52,26 @@ class Track123PayloadExtractor
             || isset($payload['trackNo'])
             || isset($payload['transitStatus'])
             || isset($payload['trackInfo']);
+    }
+
+    /**
+     * @param array<mixed> $value
+     * @return array<int, array<string, mixed>>
+     */
+    private function normalizeTrackingCollection(array $value): array
+    {
+        if (array_is_list($value)) {
+            return array_values(array_filter($value, 'is_array'));
+        }
+
+        if (isset($value['content']) && is_array($value['content'])) {
+            return $this->normalizeTrackingCollection($value['content']);
+        }
+
+        if (isset($value['accepted']) && is_array($value['accepted'])) {
+            return $this->normalizeTrackingCollection($value['accepted']);
+        }
+
+        return [];
     }
 }
