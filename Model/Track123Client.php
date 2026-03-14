@@ -76,10 +76,17 @@ class Track123Client
         $curl->setTimeout($this->config->getRequestTimeout($storeId));
         $curl->setOption(CURLOPT_CONNECTTIMEOUT, $this->config->getConnectTimeout($storeId));
         $curl->setOption(CURLOPT_RETURNTRANSFER, true);
-        if (defined('CURL_HTTP_VERSION_1_1')) {
+        if (defined('CURL_HTTP_VERSION_2TLS')) {
+            $curl->setOption(CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
+        } elseif (defined('CURL_HTTP_VERSION_2_0')) {
+            $curl->setOption(CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+        } elseif (defined('CURL_HTTP_VERSION_1_1')) {
             $curl->setOption(CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         }
+        $curl->setOption(CURLOPT_PROXY, '');
+        $curl->setOption(CURLOPT_NOPROXY, '*');
         $curl->setOption(CURLOPT_ENCODING, '');
+        $curl->setOption(CURLOPT_USERAGENT, 'curl/8.0.1');
         $curl->setOption(CURLOPT_MAXREDIRS, 10);
         $curl->addHeader('Accept', 'application/json');
         $curl->addHeader('Content-Type', 'application/json');
@@ -135,7 +142,7 @@ class Track123Client
             );
         }
 
-        if ($status < 200 || $status >= 300 || $this->isBusinessErrorResponse($decoded)) {
+        if ($status < 200 || $status >= 300 || $this->isBusinessErrorResponse($decoded, $path)) {
             $message = $this->buildActionableErrorMessage($decoded, $status, $path, $url);
             $this->logger->error('Track123 returned an error', [
                 'request' => $requestContext,
@@ -323,8 +330,12 @@ class Track123Client
     /**
      * @param array<string, mixed> $decoded
      */
-    private function isBusinessErrorResponse(array $decoded): bool
+    private function isBusinessErrorResponse(array $decoded, string $path): bool
     {
+        if ($path === '/track/import' && $this->isAlreadyImportedResponse($decoded)) {
+            return false;
+        }
+
         if (isset($decoded['success']) && $decoded['success'] === false) {
             return true;
         }
@@ -348,6 +359,42 @@ class Track123Client
         }
 
         return false;
+    }
+
+    /**
+     * @param array<string, mixed> $decoded
+     */
+    private function isAlreadyImportedResponse(array $decoded): bool
+    {
+        $code = trim((string)($decoded['code'] ?? ''));
+        if ($code !== '00000') {
+            return false;
+        }
+
+        $data = $decoded['data'] ?? null;
+        if (!is_array($data) || !isset($data['rejected']) || !is_array($data['rejected']) || $data['rejected'] === []) {
+            return false;
+        }
+
+        foreach ($data['rejected'] as $row) {
+            if (!is_array($row)) {
+                return false;
+            }
+
+            $error = $row['error'] ?? null;
+            if (!is_array($error)) {
+                return false;
+            }
+
+            $errorCode = trim((string)($error['code'] ?? ''));
+            $errorMessage = mb_strtolower(trim((string)($error['msg'] ?? '')));
+            $isAlreadyImported = $errorCode === 'A0400' && str_contains($errorMessage, 'has been imported');
+            if (!$isAlreadyImported) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
