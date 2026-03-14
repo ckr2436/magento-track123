@@ -78,7 +78,7 @@ class Track123Client
         $curl->setOption(CURLOPT_RETURNTRANSFER, true);
         $curl->addHeader('Accept', 'application/json');
         $curl->addHeader('Content-Type', 'application/json');
-        $curl->addHeader('Track123-Api-Secret', $secret);
+        $curl->addHeader('Track123-Api-Secret', trim($secret));
 
         $url = $this->config->getApiBaseUrl($storeId) . $path;
         $body = (string)json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -89,6 +89,7 @@ class Track123Client
                 'path' => $path,
                 'url' => $url,
                 'payload' => $maskedPayload,
+                'auth_header' => 'Track123-Api-Secret',
             ]);
         }
 
@@ -359,7 +360,7 @@ class Track123Client
 
         if ($status === 403 && trim($message) === '404') {
             return sprintf(
-                'HTTP 403 from Track123 (%s). Gateway returned message "404", which usually means the API key is not authorized for this path/version or base URL is incorrect. Check pynarae_tracking/api/base_url and pynarae_tracking/api/api_secret for this store scope. URL: %s',
+                'HTTP 403 from Track123 (%s). Gateway returned message "404", which usually means the API key is not authorized for this path/version or base URL is incorrect. Verify pynarae_tracking/api/base_url and pynarae_tracking/api/api_secret for this store scope. URL: %s',
                 $path,
                 $url
             );
