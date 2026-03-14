@@ -5,13 +5,20 @@ declare(strict_types=1);
 namespace Pynarae\Tracking\Model\Carrier;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Directory\Model\CountryFactory;
+use Magento\Directory\Model\CurrencyFactory;
+use Magento\Directory\Model\RegionFactory;
+use Magento\Directory\Helper\Data as DirectoryHelper;
+use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Xml\Security;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory;
+use Magento\Quote\Model\Quote\Address\RateResult\MethodFactory;
 use Magento\Sales\Model\Order\Shipment\Track;
 use Magento\Shipping\Model\Carrier\AbstractCarrierOnline;
+use Magento\Shipping\Model\Rate\ResultFactory as RateResultFactory;
 use Magento\Shipping\Model\Simplexml\ElementFactory;
 use Magento\Shipping\Model\Tracking\Result;
 use Magento\Shipping\Model\Tracking\Result\Error;
@@ -38,6 +45,13 @@ class Track123 extends AbstractCarrierOnline
         StatusFactory $trackStatusFactory,
         Security $xmlSecurity,
         ElementFactory $xmlElementFactory,
+        RateResultFactory $rateResultFactory,
+        MethodFactory $rateMethodFactory,
+        RegionFactory $regionFactory,
+        CountryFactory $countryFactory,
+        CurrencyFactory $currencyFactory,
+        DirectoryHelper $directoryHelper,
+        StockRegistryInterface $stockRegistry,
         private readonly StoreTrackingLocator $storeTrackingLocator,
         private readonly TrackingSynchronizer $trackingSynchronizer,
         private readonly TrackingCacheManager $trackingCacheManager,
@@ -46,7 +60,24 @@ class Track123 extends AbstractCarrierOnline
         $this->_trackFactory = $trackFactory;
         $this->_trackErrorFactory = $trackErrorFactory;
         $this->_trackStatusFactory = $trackStatusFactory;
-        parent::__construct($scopeConfig, $rateErrorFactory, $logger, $xmlSecurity, $xmlElementFactory, $data);
+        parent::__construct(
+            $scopeConfig,
+            $rateErrorFactory,
+            $logger,
+            $xmlSecurity,
+            $xmlElementFactory,
+            $rateResultFactory,
+            $rateMethodFactory,
+            $trackFactory,
+            $trackErrorFactory,
+            $trackStatusFactory,
+            $regionFactory,
+            $countryFactory,
+            $currencyFactory,
+            $directoryHelper,
+            $stockRegistry,
+            $data
+        );
     }
 
     public function collectRates(RateRequest $request)
