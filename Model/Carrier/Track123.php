@@ -12,6 +12,7 @@ use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory;
 use Magento\Sales\Model\Order\Shipment\Track;
 use Magento\Shipping\Model\Carrier\AbstractCarrierOnline;
+use Magento\Shipping\Model\Simplexml\ElementFactory;
 use Magento\Shipping\Model\Tracking\Result;
 use Magento\Shipping\Model\Tracking\Result\Error;
 use Magento\Shipping\Model\Tracking\Result\ErrorFactory as TrackingErrorFactory;
@@ -36,6 +37,7 @@ class Track123 extends AbstractCarrierOnline
         TrackingErrorFactory $trackErrorFactory,
         StatusFactory $trackStatusFactory,
         Security $xmlSecurity,
+        ElementFactory $xmlElementFactory,
         private readonly StoreTrackingLocator $storeTrackingLocator,
         private readonly TrackingSynchronizer $trackingSynchronizer,
         private readonly TrackingCacheManager $trackingCacheManager,
@@ -44,7 +46,7 @@ class Track123 extends AbstractCarrierOnline
         $this->_trackFactory = $trackFactory;
         $this->_trackErrorFactory = $trackErrorFactory;
         $this->_trackStatusFactory = $trackStatusFactory;
-        parent::__construct($scopeConfig, $rateErrorFactory, $logger, $xmlSecurity, $data);
+        parent::__construct($scopeConfig, $rateErrorFactory, $logger, $xmlSecurity, $xmlElementFactory, $data);
     }
 
     public function collectRates(RateRequest $request)
@@ -141,6 +143,9 @@ class Track123 extends AbstractCarrierOnline
     private function resolveOwnedTrack(string $trackingNumber): Track
     {
         $tracks = $this->storeTrackingLocator->locate($trackingNumber);
+        if ($tracks === []) {
+            throw new LocalizedException(__('Tracking number is not associated with this store.'));
+        }
 
         return $tracks[0];
     }
