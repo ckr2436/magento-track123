@@ -1,132 +1,126 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --pyn-bg: #f7f4ef;
+  --pyn-bg: #f5f4f2;
   --pyn-card: #ffffff;
-  --pyn-text: #23272f;
-  --pyn-muted: #6f7680;
-  --pyn-soft: #a9afb7;
-  --pyn-line: #d8d2ca;
-  --pyn-input: #d9d3cb;
-  --pyn-dark: #2f353d;
-  --pyn-dark-hover: #232a31;
-  --pyn-shadow: 0 20px 48px rgba(18, 22, 28, 0.06);
+  --pyn-text: #1f2933;
+  --pyn-muted: #667085;
+  --pyn-soft: #98a2b3;
+  --pyn-line: #e4e7ec;
+  --pyn-input: #d0d5dd;
+  --pyn-dark: #111827;
+  --pyn-dark-hover: #0b1220;
+  --pyn-shadow: 0 24px 46px rgba(16, 24, 40, 0.08);
 }
 
 body.tracking-index-index,
 body.tracking-lookup-index {
   background: var(--pyn-bg);
   color: var(--pyn-text);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 .tracking-index-index .columns,
 .tracking-lookup-index .columns {
   padding-top: 40px;
-  padding-bottom: 72px;
+  padding-bottom: 76px;
 }
 
 .pyn-track-page,
 .pynarae-tracking-results {
-  max-width: 980px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
 .pyn-track-hero {
   text-align: center;
-  padding: 22px 0 8px;
+  padding: 16px 0 10px;
 }
 
 .pyn-track-eyebrow {
   margin: 0 0 14px;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: .28em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .24em;
   text-transform: uppercase;
-  color: #8a837c;
+  color: #667085;
 }
 
 .pyn-track-title {
-  margin: 0 0 18px;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(56px, 6vw, 80px);
-  line-height: .94;
-  font-weight: 600;
+  margin: 0 0 14px;
+  font-size: clamp(40px, 5vw, 56px);
+  line-height: 1.04;
+  font-weight: 700;
   letter-spacing: -.02em;
-  color: #2c3139;
+  color: #101828;
 }
 
 .pyn-track-subtitle {
   max-width: 560px;
   margin: 0 auto;
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.75;
   color: var(--pyn-muted);
 }
 
 .pyn-track-card {
-  max-width: 700px !important;
-  margin: 38px auto 0 !important;
-  padding: 34px 34px 30px !important;
+  max-width: 720px !important;
+  margin: 34px auto 0 !important;
+  padding: 32px !important;
   background: var(--pyn-card) !important;
-  border: 1px solid rgba(0,0,0,0.04) !important;
-  border-radius: 30px !important;
+  border: 1px solid #eaecf0 !important;
+  border-radius: 24px !important;
   box-shadow: var(--pyn-shadow) !important;
 }
 
 .pyn-track-tabs {
-  display: flex !important;
-  align-items: flex-end !important;
-  gap: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
   margin: 0 0 24px !important;
-  padding: 0 0 14px !important;
-  border-bottom: 1px solid var(--pyn-line) !important;
+  padding: 6px !important;
+  border: 1px solid var(--pyn-line) !important;
+  border-radius: 14px !important;
+  background: #f8fafc !important;
 }
 
 .pyn-track-tab,
 button.pyn-track-tab {
-  position: relative !important;
   appearance: none !important;
   -webkit-appearance: none !important;
   border: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
   outline: none !important;
-  border-radius: 0 !important;
-  padding: 0 0 4px !important;
+  border-radius: 10px !important;
+  padding: 10px 16px !important;
   margin: 0 !important;
   min-width: auto !important;
   height: auto !important;
-  color: var(--pyn-soft) !important;
-  font-family: 'Inter', sans-serif !important;
-  font-size: 17px !important;
-  font-weight: 500 !important;
+  color: #667085 !important;
+  font-family: inherit !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
   line-height: 1.2 !important;
   cursor: pointer !important;
-  transition: color .18s ease !important;
+  transition: all .18s ease !important;
 }
 
 .pyn-track-tab:hover,
 button.pyn-track-tab:hover {
-  background: transparent !important;
-  color: #555b64 !important;
+  color: #344054 !important;
 }
 
 .pyn-track-tab.is-active,
 button.pyn-track-tab.is-active {
-  color: #15181d !important;
-  font-weight: 600 !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08) !important;
 }
 
 .pyn-track-tab.is-active::after,
 button.pyn-track-tab.is-active::after {
-  content: "";
-  position: absolute !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: -15px !important;
-  height: 3px !important;
-  background: #15181d !important;
+  display: none;
 }
 
 .pyn-track-panel {
@@ -142,90 +136,88 @@ button.pyn-track-tab.is-active::after {
   margin: 0 0 22px;
   color: var(--pyn-muted);
   font-size: 15px;
-  line-height: 1.75;
+  line-height: 1.7;
 }
 
 .pyn-track-alert {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   align-items: flex-start;
-  margin: 0 0 22px;
-  padding: 16px 18px;
-  border-radius: 16px;
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  border-radius: 14px;
 }
 
 .pyn-track-alert--error {
-  background: #fff4f2;
-  border: 1px solid #f3c7c1;
-  box-shadow: 0 8px 22px rgba(164, 46, 46, 0.06);
+  background: #fffbfa;
+  border: 1px solid #fecdca;
 }
 
 .pyn-track-alert--warning {
-  background: #fff8ed;
-  border: 1px solid #f0d6a6;
-  box-shadow: 0 8px 22px rgba(154, 111, 29, 0.06);
+  background: #fffcf5;
+  border: 1px solid #fedf89;
 }
 
 .pyn-track-alert-icon {
-  flex: 0 0 28px;
-  width: 28px;
-  height: 28px;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
   border-radius: 999px;
-  background: #c94b40;
+  background: #d92d20;
   color: #fff;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
-  line-height: 28px;
+  line-height: 24px;
   text-align: center;
 }
 
 .pyn-track-alert-icon--warning {
-  background: #b78322;
+  background: #b54708;
 }
 
 .pyn-track-alert-content h3 {
   margin: 0 0 4px;
-  color: #8f2f27;
-  font-size: 16px;
+  color: #912018;
+  font-size: 15px;
   font-weight: 700;
 }
 
 .pyn-track-alert--warning .pyn-track-alert-content h3 {
-  color: #8a6116;
+  color: #7a2e0e;
 }
 
 .pyn-track-alert-content p {
   margin: 0;
-  color: #7b4a45;
+  color: #b42318;
   font-size: 14px;
-  line-height: 1.65;
+  line-height: 1.55;
 }
 
 .pyn-track-alert--warning .pyn-track-alert-content p {
-  color: #7a6438;
+  color: #93370d;
 }
 
 .pyn-track-verification {
-  margin-top: 18px;
-  margin-bottom: 6px;
-  padding: 18px;
-  border-radius: 18px;
-  background: #fcfaf6;
-  border: 1px solid #ece1cc;
+  margin-top: 16px;
+  margin-bottom: 4px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #fcfcfd;
+  border: 1px solid #eaecf0;
 }
 
 .pyn-track-verification-title {
-  margin: 0 0 14px;
-  color: #6d5a32;
-  font-size: 13px;
+  margin: 0 0 12px;
+  color: #344054;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: .14em;
+  letter-spacing: .12em;
   text-transform: uppercase;
 }
 
 .pyn-track-grid {
   display: grid;
-  gap: 20px;
+  gap: 18px;
 }
 
 .pyn-track-grid--2 {
@@ -234,45 +226,44 @@ button.pyn-track-tab.is-active::after {
 
 .pyn-track-field label {
   display: block;
-  margin-bottom: 10px;
-  color: #1e232b;
-  font-size: 14px;
+  margin-bottom: 8px;
+  color: #344054;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: .01em;
 }
 
 .pyn-track-field input {
   width: 100% !important;
-  height: 58px !important;
-  padding: 0 18px !important;
+  height: 52px !important;
+  padding: 0 14px !important;
   border: 1px solid var(--pyn-input) !important;
-  border-radius: 14px !important;
+  border-radius: 12px !important;
   background: #fff !important;
-  color: #22262c !important;
-  font-family: 'Inter', sans-serif !important;
+  color: #101828 !important;
+  font-family: inherit !important;
   font-size: 15px !important;
   box-shadow: none !important;
-  transition: border-color .18s ease, box-shadow .18s ease !important;
+  transition: border-color .16s ease, box-shadow .16s ease !important;
 }
 
 .pyn-track-field input::placeholder {
-  color: #b1b5bc !important;
+  color: #98a2b3 !important;
 }
 
 .pyn-track-field input:focus {
   outline: none !important;
-  border-color: #8c8278 !important;
-  box-shadow: 0 0 0 4px rgba(186, 175, 162, 0.14) !important;
+  border-color: #475467 !important;
+  box-shadow: 0 0 0 4px rgba(71, 84, 103, 0.14) !important;
 }
 
 .pyn-track-field input.is-invalid {
-  border-color: #d86a5d !important;
+  border-color: #d92d20 !important;
   background: #fffafa !important;
-  box-shadow: 0 0 0 4px rgba(216, 106, 93, 0.08) !important;
+  box-shadow: 0 0 0 4px rgba(217, 45, 32, 0.1) !important;
 }
 
 .pyn-track-actions {
-  margin-top: 26px !important;
+  margin-top: 22px !important;
 }
 
 .pyn-track-btn,
@@ -286,14 +277,14 @@ button.pyn-track-btn,
   align-items: center !important;
   justify-content: center !important;
   min-width: 170px !important;
-  height: 50px !important;
-  padding: 0 24px !important;
+  height: 48px !important;
+  padding: 0 22px !important;
   border: 0 !important;
-  border-radius: 999px !important;
+  border-radius: 12px !important;
   background: var(--pyn-dark) !important;
   color: #fff !important;
-  font-family: 'Inter', sans-serif !important;
-  font-size: 15px !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
   font-weight: 600 !important;
   letter-spacing: .01em !important;
   line-height: 1 !important;
@@ -320,58 +311,59 @@ button.pyn-track-btn:focus,
 .pynarae-tracking-result-card .pyn-track-btn:focus,
 .pynarae-tracking-result-card .pyn-track-actions a:focus {
   outline: none !important;
-  box-shadow: 0 0 0 4px rgba(47, 53, 61, 0.12) !important;
+  box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.15) !important;
 }
 
 .pynarae-tracking-result-summary,
 .pynarae-tracking-result-card {
   background: #fff;
-  border-radius: 24px;
-  border: 1px solid rgba(0,0,0,0.04);
+  border-radius: 20px;
+  border: 1px solid #eaecf0;
   box-shadow: var(--pyn-shadow);
 }
 
 .pynarae-tracking-result-summary {
   display: flex;
   justify-content: space-between;
-  gap: 22px;
-  padding: 24px 28px;
-  margin: 26px 0 18px;
+  gap: 20px;
+  padding: 22px 24px;
+  margin: 24px 0 16px;
 }
 
 .pynarae-tracking-summary-label,
 .pynarae-tracking-meta-label {
   display: block;
-  margin-bottom: 8px;
-  color: #8a8f97;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: .16em;
+  margin-bottom: 6px;
+  color: #98a2b3;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
   text-transform: uppercase;
 }
 
 .pynarae-tracking-result-summary h2 {
   margin: 0;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(34px, 4vw, 46px);
-  line-height: 1;
-  color: #2b3139;
+  font-size: clamp(30px, 4vw, 42px);
+  font-weight: 700;
+  line-height: 1.08;
+  color: #101828;
 }
 
 .pynarae-tracking-summary-meta {
   display: flex;
-  gap: 24px;
+  gap: 22px;
   flex-wrap: wrap;
 }
 
 .pynarae-tracking-meta-value {
   display: block;
-  color: #232932;
+  color: #101828;
+  font-size: 14px;
   font-weight: 600;
 }
 
 .pynarae-tracking-result-card {
-  padding: 26px 28px;
+  padding: 24px;
   margin-bottom: 18px;
 }
 
@@ -384,54 +376,55 @@ button.pyn-track-btn:focus,
 
 .pynarae-tracking-result-title-wrap h3 {
   margin: 0;
-  font-size: 24px;
+  font-size: 23px;
   font-weight: 700;
-  color: #21262d;
+  color: #101828;
 }
 
 .pynarae-tracking-trackno,
 .pynarae-tracking-substatus,
 .pynarae-tracking-noevents {
-  color: #666d75;
+  color: #667085;
 }
 
 .pynarae-tracking-trackno {
   margin: 8px 0 0;
+  font-size: 14px;
 }
 
 .pynarae-tracking-substatus {
   margin: 10px 0 0;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .pynarae-tracking-status-pill {
   white-space: nowrap;
   border-radius: 999px;
-  padding: 10px 14px;
-  font-size: 13px;
+  padding: 8px 12px;
+  font-size: 12px;
   font-weight: 700;
-  background: #eef2f7;
-  color: #263044;
+  background: #f2f4f7;
+  color: #344054;
 }
 
 .pynarae-tracking-status-pill.is-delivered {
-  background: #eef9f1;
-  color: #1d6b3b;
+  background: #ecfdf3;
+  color: #027a48;
 }
 
 .pynarae-tracking-status-pill.is-in-transit,
 .pynarae-tracking-status-pill.is-out-for-delivery,
 .pynarae-tracking-status-pill.is-info-received,
 .pynarae-tracking-status-pill.is-pending {
-  background: #eef3ff;
-  color: #294bb7;
+  background: #eff8ff;
+  color: #175cd3;
 }
 
 .pynarae-tracking-status-pill.is-exception,
 .pynarae-tracking-status-pill.is-failed-attempt,
 .pynarae-tracking-status-pill.is-expired {
-  background: #fff2f0;
-  color: #b24032;
+  background: #fef3f2;
+  color: #b42318;
 }
 
 .pynarae-tracking-timeline {
@@ -442,7 +435,7 @@ button.pyn-track-btn:focus,
 
 .pynarae-tracking-timeline-item {
   position: relative;
-  padding: 0 0 22px 30px;
+  padding: 0 0 22px 28px;
 }
 
 .pynarae-tracking-timeline-item:last-child {
@@ -452,22 +445,22 @@ button.pyn-track-btn:focus,
 .pynarae-tracking-timeline-item::before {
   content: "";
   position: absolute;
-  left: 7px;
+  left: 6px;
   top: 8px;
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: #1f2329;
+  background: #101828;
 }
 
 .pynarae-tracking-timeline-item::after {
   content: "";
   position: absolute;
-  left: 11px;
+  left: 10px;
   top: 22px;
   bottom: -2px;
   width: 1px;
-  background: #d9d9d9;
+  background: #d0d5dd;
 }
 
 .pynarae-tracking-timeline-item:last-child::after {
@@ -477,28 +470,29 @@ button.pyn-track-btn:focus,
 .pynarae-tracking-event-time {
   display: block;
   margin-bottom: 6px;
-  color: #8a8f96;
-  font-size: 12px;
-  font-weight: 600;
+  color: #98a2b3;
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
 }
 
 .pynarae-tracking-event-desc {
-  color: #21262d;
+  color: #101828;
   font-weight: 600;
 }
 
 .pynarae-tracking-event-location {
   margin-top: 4px;
-  color: #69707a;
+  color: #667085;
   font-size: 14px;
 }
 
 @media (max-width: 900px) {
-  .pyn-track-card {
-    margin-left: 18px !important;
-    margin-right: 18px !important;
+  .pyn-track-card,
+  .pynarae-tracking-results {
+    margin-left: 16px !important;
+    margin-right: 16px !important;
   }
 }
 
@@ -506,37 +500,38 @@ button.pyn-track-btn:focus,
   .tracking-index-index .columns,
   .tracking-lookup-index .columns {
     padding-top: 18px;
-    padding-bottom: 42px;
+    padding-bottom: 40px;
   }
 
   .pyn-track-title {
-    font-size: 50px;
+    font-size: 36px;
   }
 
   .pyn-track-subtitle {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .pyn-track-card,
   .pynarae-tracking-result-summary,
   .pynarae-tracking-result-card {
-    padding: 22px 18px !important;
-    border-radius: 22px !important;
+    padding: 18px !important;
+    border-radius: 18px !important;
   }
 
   .pyn-track-tabs {
-    gap: 26px !important;
-    overflow-x: auto !important;
-    padding-bottom: 12px !important;
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px !important;
+    padding: 6px !important;
   }
 
-  .pyn-track-tab {
+  .pyn-track-tab,
+  button.pyn-track-tab {
     white-space: nowrap !important;
-    font-size: 16px !important;
-  }
-
-  .pyn-track-tab.is-active::after {
-    bottom: -13px !important;
+    font-size: 14px !important;
+    text-align: center;
+    justify-content: center;
   }
 
   .pyn-track-grid--2 {
