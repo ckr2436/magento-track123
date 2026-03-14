@@ -58,6 +58,9 @@ class Track123 extends AbstractCarrierOnline
             $xmlElementFactory,
             $rateResultFactory,
             $rateMethodFactory,
+            $trackFactory,
+            $trackErrorFactory,
+            $trackStatusFactory,
             $data
         );
     }
