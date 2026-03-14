@@ -8,6 +8,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Directory\Model\CountryFactory;
 use Magento\Directory\Model\CurrencyFactory;
 use Magento\Directory\Model\RegionFactory;
+use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
@@ -49,6 +50,7 @@ class Track123 extends AbstractCarrierOnline
         RegionFactory $regionFactory,
         CountryFactory $countryFactory,
         CurrencyFactory $currencyFactory,
+        DirectoryHelper $directoryHelper,
         StockRegistryInterface $stockRegistry,
         private readonly StoreTrackingLocator $storeTrackingLocator,
         private readonly TrackingSynchronizer $trackingSynchronizer,
@@ -72,6 +74,7 @@ class Track123 extends AbstractCarrierOnline
             $regionFactory,
             $countryFactory,
             $currencyFactory,
+            $directoryHelper,
             $stockRegistry,
             $data
         );
