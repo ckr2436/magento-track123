@@ -113,7 +113,10 @@ class LookupService
         $cache = $this->trackingCacheManager->getByTrackId((int)$track->getId());
         $warning = null;
 
-        $shouldRefresh = $this->config->useLiveRefreshOnLookup($storeId)
+        $allowFrontendRefresh = $this->config->useLiveRefreshOnLookup($storeId)
+            && !$this->config->isWebhookEnabled($storeId);
+
+        $shouldRefresh = $allowFrontendRefresh
             && ($cache === null || $this->trackingCacheManager->isStale($cache, $this->config->getQueryStaleAfterMinutes($storeId)));
 
         if ($shouldRefresh) {

@@ -5,4 +5,8 @@
         <observer name="pynarae_tracking_enqueue_track_register"
                   instance="Pynarae\Tracking\Observer\ShipmentTrackSaveAfter"/>
     </event>
+    <event name="sales_order_shipment_save_after">
+        <observer name="pynarae_tracking_enqueue_shipment_tracks_register"
+                  instance="Pynarae\Tracking\Observer\ShipmentSaveAfter"/>
+    </event>
 </config>

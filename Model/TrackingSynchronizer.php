@@ -83,7 +83,14 @@ class TrackingSynchronizer
             $order,
             $manualVerification,
             fn(array $context) => $this->track123Client->queryTrackings(
-                ['trackNos' => [$trackingNumber]],
+                [
+                    'trackNoInfos' => [
+                        ['trackNo' => $trackingNumber],
+                    ],
+                    'orderNos' => [(string)$order->getIncrementId()],
+                    'cursor' => '',
+                    'queryPageSize' => 100,
+                ],
                 $storeId,
                 $context
             )

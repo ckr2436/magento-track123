@@ -14,7 +14,7 @@ class Track123PayloadExtractor
     {
         $candidates = [];
 
-        foreach (['data', 'result', 'items', 'list'] as $key) {
+        foreach (['data', 'result', 'items', 'list', 'accepted'] as $key) {
             if (isset($response[$key])) {
                 $candidates[] = $response[$key];
             }
@@ -28,10 +28,14 @@ class Track123PayloadExtractor
                 if (array_is_list($candidate)) {
                     return array_values(array_filter($candidate, 'is_array'));
                 }
-                foreach (['items', 'list', 'trackings'] as $nestedKey) {
+                foreach (['items', 'list', 'trackings', 'content', 'accepted'] as $nestedKey) {
                     if (isset($candidate[$nestedKey]) && is_array($candidate[$nestedKey])) {
                         return array_values(array_filter($candidate[$nestedKey], 'is_array'));
                     }
+                }
+
+                if (isset($candidate['accepted']['content']) && is_array($candidate['accepted']['content'])) {
+                    return array_values(array_filter($candidate['accepted']['content'], 'is_array'));
                 }
             }
         }
