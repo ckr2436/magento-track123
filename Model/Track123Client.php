@@ -129,7 +129,7 @@ class Track123Client
         }
 
         if ($status < 200 || $status >= 300 || $this->isBusinessErrorResponse($decoded)) {
-            $message = $this->extractErrorMessage($decoded);
+            $message = $this->buildActionableErrorMessage($decoded, $status, $path, $url);
             $this->logger->error('Track123 returned an error', [
                 'path' => $path,
                 'url' => $url,
@@ -348,6 +348,28 @@ class Track123Client
         }
 
         return 'Unknown Track123 error.';
+    }
+
+    /**
+     * @param array<string, mixed> $decoded
+     */
+    private function buildActionableErrorMessage(array $decoded, int $status, string $path, string $url): string
+    {
+        $message = $this->extractErrorMessage($decoded);
+
+        if ($status === 403 && trim($message) === '404') {
+            return sprintf(
+                'HTTP 403 from Track123 (%s). Gateway returned message "404", which usually means the API key is not authorized for this path/version or base URL is incorrect. Check pynarae_tracking/api/base_url and pynarae_tracking/api/api_secret for this store scope. URL: %s',
+                $path,
+                $url
+            );
+        }
+
+        if ($status >= 400) {
+            return sprintf('HTTP %d: %s', $status, $message);
+        }
+
+        return $message;
     }
 
     /**
