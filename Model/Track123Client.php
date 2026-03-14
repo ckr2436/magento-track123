@@ -76,6 +76,11 @@ class Track123Client
         $curl->setTimeout($this->config->getRequestTimeout($storeId));
         $curl->setOption(CURLOPT_CONNECTTIMEOUT, $this->config->getConnectTimeout($storeId));
         $curl->setOption(CURLOPT_RETURNTRANSFER, true);
+        if (defined('CURL_HTTP_VERSION_1_1')) {
+            $curl->setOption(CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+        }
+        $curl->setOption(CURLOPT_ENCODING, '');
+        $curl->setOption(CURLOPT_MAXREDIRS, 10);
         $curl->addHeader('Accept', 'application/json');
         $curl->addHeader('Content-Type', 'application/json');
         $curl->addHeader('Track123-Api-Secret', trim($secret));
