@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pynarae\Tracking\Model;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Store\Model\ScopeInterface;
 
 class Config
@@ -36,8 +37,10 @@ class Config
     public const XML_PATH_WEBHOOK_LOG_PAYLOADS = 'pynarae_tracking/webhook/log_payloads';
     public const XML_PATH_WEBHOOK_CLEANUP_DAYS = 'pynarae_tracking/webhook/cleanup_days';
 
-    public function __construct(private readonly ScopeConfigInterface $scopeConfig)
-    {
+    public function __construct(
+        private readonly ScopeConfigInterface $scopeConfig,
+        private readonly EncryptorInterface $encryptor
+    ) {
     }
 
     public function isEnabled(?int $storeId = null): bool
@@ -82,7 +85,13 @@ class Config
 
     public function getApiSecret(?int $storeId = null): string
     {
-        return trim((string) $this->getValue(self::XML_PATH_API_SECRET, $storeId));
+        $secret = trim((string) $this->getValue(self::XML_PATH_API_SECRET, $storeId));
+        if ($secret === '') {
+            return '';
+        }
+
+        $decrypted = trim((string) $this->encryptor->decrypt($secret));
+        return $decrypted !== '' ? $decrypted : $secret;
     }
 
     public function getRequestTimeout(?int $storeId = null): int
