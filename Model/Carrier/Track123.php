@@ -10,6 +10,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Xml\Security;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory;
+use Magento\Quote\Model\Quote\Address\RateResult\MethodFactory;
 use Magento\Sales\Model\Order\Shipment\Track;
 use Magento\Shipping\Model\Carrier\AbstractCarrierOnline;
 use Magento\Shipping\Model\Rate\ResultFactory as RateResultFactory;
@@ -40,6 +41,7 @@ class Track123 extends AbstractCarrierOnline
         Security $xmlSecurity,
         ElementFactory $xmlElementFactory,
         RateResultFactory $rateResultFactory,
+        MethodFactory $rateMethodFactory,
         private readonly StoreTrackingLocator $storeTrackingLocator,
         private readonly TrackingSynchronizer $trackingSynchronizer,
         private readonly TrackingCacheManager $trackingCacheManager,
@@ -55,6 +57,7 @@ class Track123 extends AbstractCarrierOnline
             $xmlSecurity,
             $xmlElementFactory,
             $rateResultFactory,
+            $rateMethodFactory,
             $data
         );
     }
