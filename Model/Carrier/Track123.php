@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Pynarae\Tracking\Model\Carrier;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Directory\Model\CountryFactory;
+use Magento\Directory\Model\CurrencyFactory;
+use Magento\Directory\Model\RegionFactory;
+use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Xml\Security;
@@ -42,6 +46,10 @@ class Track123 extends AbstractCarrierOnline
         ElementFactory $xmlElementFactory,
         RateResultFactory $rateResultFactory,
         MethodFactory $rateMethodFactory,
+        RegionFactory $regionFactory,
+        CountryFactory $countryFactory,
+        CurrencyFactory $currencyFactory,
+        StockRegistryInterface $stockRegistry,
         private readonly StoreTrackingLocator $storeTrackingLocator,
         private readonly TrackingSynchronizer $trackingSynchronizer,
         private readonly TrackingCacheManager $trackingCacheManager,
@@ -61,6 +69,10 @@ class Track123 extends AbstractCarrierOnline
             $trackFactory,
             $trackErrorFactory,
             $trackStatusFactory,
+            $regionFactory,
+            $countryFactory,
+            $currencyFactory,
+            $stockRegistry,
             $data
         );
     }
