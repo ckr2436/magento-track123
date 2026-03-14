@@ -34,5 +34,13 @@
                 <cleanup_days>14</cleanup_days>
             </webhook>
         </pynarae_tracking>
+        <carriers>
+            <track123_custom>
+                <active>1</active>
+                <model>Pynarae\Tracking\Model\Carrier\Track123</model>
+                <title>Track123</title>
+                <name>Track123</name>
+            </track123_custom>
+        </carriers>
     </default>
 </config>
