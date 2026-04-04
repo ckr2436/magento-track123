@@ -26,7 +26,7 @@
                 </field>
                 <field id="use_live_refresh_on_lookup" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Attempt Live Refresh On Guest Lookup</label>
-                    <comment>If cache is stale, refresh from Track123 during frontend lookup and fall back to cache if refresh fails.</comment>
+                    <comment>If cache is stale, refresh from provider during frontend lookup and fall back to cache if refresh fails.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="cache_ttl_minutes" translate="label comment" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -41,36 +41,79 @@
                     <label>Max Timeline Events To Display</label>
                     <validate>validate-digits validate-greater-than-zero</validate>
                 </field>
+                <field id="default_provider" translate="label comment" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default Provider</label>
+                    <source_model>Pynarae\Tracking\Model\Config\Source\DefaultProvider</source_model>
+                </field>
             </group>
-            <group id="api" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Track123 API</label>
-                <field id="base_url" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="providers_track123" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Provider: Track123</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Track123</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="base_url" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Base URL</label>
                 </field>
-                <field id="api_secret" translate="label comment" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="api_secret" translate="label comment" type="obscure" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>API Secret</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-                    <comment>Prefer setting this via `bin/magento config:sensitive:set pynarae_tracking/api/api_secret ...`.</comment>
+                    <comment>Prefer setting this via `bin/magento config:sensitive:set pynarae_tracking/providers_track123/api_secret ...`.</comment>
                 </field>
-                <field id="request_timeout" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="request_timeout" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Request Timeout (seconds)</label>
                     <validate>validate-number validate-greater-than-zero</validate>
                 </field>
-                <field id="connect_timeout" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="connect_timeout" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Connect Timeout (seconds)</label>
                     <validate>validate-number validate-greater-than-zero</validate>
                 </field>
-                <field id="auto_detect_carrier" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="auto_detect_carrier" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Auto Detect Carrier</label>
                     <comment>If a usable courier code is not mapped locally, try Track123 carrier detection.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="carrier_mapping" translate="label comment" type="textarea" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="carrier_mapping" translate="label comment" type="textarea" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Carrier Mapping</label>
                     <comment><![CDATA[One mapping per line. Examples:<br/>gofo=gofo<br/>uniuni=uniuni<br/>swiftx=swiftx<br/>custom:GOFO=gofo]]></comment>
                 </field>
             </group>
-            <group id="sync" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="providers_ship24" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Provider: Ship24</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Ship24</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="base_url" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Base URL</label>
+                </field>
+                <field id="api_key" translate="label comment" type="obscure" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>API Key</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment>Prefer setting this via `bin/magento config:sensitive:set pynarae_tracking/providers_ship24/api_key ...`.</comment>
+                </field>
+                <field id="webhook_secret" translate="label comment" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Webhook Secret</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="request_timeout" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Request Timeout (seconds)</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                </field>
+                <field id="connect_timeout" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Connect Timeout (seconds)</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                </field>
+                <field id="use_create_and_track_endpoint" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Use Create and Track Endpoint</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="restrict_tracking_to_courier_code" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Restrict Tracking To Courier Code</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="sync" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Queue &amp; Sync</label>
                 <field id="auto_register_on_track_save" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Auto Register Tracking On Shipment Track Save</label>
@@ -89,8 +132,8 @@
                     <validate>validate-digits validate-greater-than-zero</validate>
                 </field>
             </group>
-            <group id="webhook" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Webhook</label>
+            <group id="webhook" translate="label" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Webhook (Global)</label>
                 <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable Webhook Endpoint</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
