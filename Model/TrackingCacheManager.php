@@ -32,7 +32,7 @@ class TrackingCacheManager
         return $item->getId() ? $item : null;
     }
 
-    public function getByTrackingNumber(string $trackingNumber): ?Cache
+    public function getByTrackingNumber(string $trackingNumber, ?string $providerCode = null): ?Cache
     {
         $trackingNumber = trim($trackingNumber);
         if ($trackingNumber === '') {
@@ -41,6 +41,9 @@ class TrackingCacheManager
 
         $collection = $this->cacheCollectionFactory->create();
         $collection->addFieldToFilter('tracking_number', $trackingNumber);
+        if ($providerCode !== null && trim($providerCode) !== '') {
+            $collection->addFieldToFilter('provider_code', trim($providerCode));
+        }
         $collection->setPageSize(1);
         $item = $collection->getFirstItem();
 
@@ -90,7 +93,10 @@ class TrackingCacheManager
 
         $cache = $trackId > 0 ? $this->getByTrackId($trackId) : null;
         if (!$cache && $trackingNumber !== '') {
-            $cache = $this->getByTrackingNumber($trackingNumber);
+            $cache = $this->getByTrackingNumber($trackingNumber, $result->providerCode);
+            if (!$cache) {
+                $cache = $this->getByTrackingNumber($trackingNumber);
+            }
         }
         if (!$cache) {
             $cache = $this->cacheFactory->create();

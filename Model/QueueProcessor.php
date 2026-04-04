@@ -57,14 +57,17 @@ class QueueProcessor
         }
 
         $track = $this->trackLoader->load($trackId);
+        $providerCode = trim((string)$job->getData('provider_code'));
+        $forcedProviderCode = $providerCode !== '' ? $providerCode : null;
+
         if ($job->getData('job_type') === Job::TYPE_REGISTER) {
-            $this->trackingSynchronizer->registerTrack($track);
+            $this->trackingSynchronizer->registerTrack($track, [], $forcedProviderCode);
             $this->enqueueFollowupQueryIfNeeded($job);
             return;
         }
 
         if ($job->getData('job_type') === Job::TYPE_QUERY) {
-            $this->trackingSynchronizer->queryTrack($track);
+            $this->trackingSynchronizer->queryTrack($track, [], $forcedProviderCode);
             return;
         }
 

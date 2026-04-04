@@ -7,11 +7,14 @@ namespace Pynarae\Tracking\Model\Provider\Track123;
 use Pynarae\Tracking\Model\Dto\ProviderEvent;
 use Pynarae\Tracking\Model\Dto\ProviderTrackingResult;
 use Pynarae\Tracking\Model\StatusNormalizer;
+use Pynarae\Tracking\Model\Track123PayloadExtractor;
 
 class Track123PayloadMapper
 {
-    public function __construct(private readonly StatusNormalizer $statusNormalizer)
-    {
+    public function __construct(
+        private readonly StatusNormalizer $statusNormalizer,
+        private readonly Track123PayloadExtractor $payloadExtractor
+    ) {
     }
 
     /**
@@ -61,21 +64,15 @@ class Track123PayloadMapper
     public function mapResponseItems(array $response): array
     {
         $items = [];
-        foreach (['data', 'result', 'items', 'list', 'accepted'] as $key) {
-            if (!isset($response[$key])) {
-                continue;
+
+        foreach ($this->payloadExtractor->extractTrackingItems($response) as $row) {
+            if (is_array($row)) {
+                $items[] = $this->map($row);
             }
-            $candidate = $response[$key];
-            if (is_array($candidate) && array_is_list($candidate)) {
-                foreach ($candidate as $row) {
-                    if (is_array($row)) {
-                        $items[] = $this->map($row);
-                    }
-                }
-                if ($items !== []) {
-                    return $items;
-                }
-            }
+        }
+
+        if ($items !== []) {
+            return $items;
         }
 
         if ($this->looksLikeTrack($response)) {
