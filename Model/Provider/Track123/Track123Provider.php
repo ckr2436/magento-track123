@@ -18,6 +18,7 @@ class Track123Provider implements TrackingProviderInterface
         private readonly Track123HttpClient $httpClient,
         private readonly Track123PayloadMapper $payloadMapper,
         private readonly Track123WebhookVerifier $webhookVerifier,
+        private readonly Track123CarrierResolver $carrierResolver,
         private readonly Config $config
     ) {
     }
@@ -49,14 +50,30 @@ class Track123Provider implements TrackingProviderInterface
             'orderNo' => $context->orderIncrementId,
         ]];
 
+        $resolvedCourierCode = null;
+
         if (!empty($context->carrierCode)) {
-            $payload[0]['courierCode'] = $context->carrierCode;
+            $resolvedCourierCode = $context->carrierCode;
+        }
+
+        $track = $context->extra['track'] ?? null;
+        if ($resolvedCourierCode === null && $track instanceof \Magento\Sales\Model\Order\Shipment\Track) {
+            $resolvedCourierCode = $this->carrierResolver->resolve($track, $context->storeId);
+        }
+
+        if ($resolvedCourierCode !== null && $resolvedCourierCode !== '') {
+            $payload[0]['courierCode'] = $resolvedCourierCode;
         }
 
         try {
             $this->httpClient->register($payload, $context->storeId, $context->verification);
         } catch (AdditionalVerificationRequiredException $e) {
-            throw new ProviderActionRequiredException($e->getRawMessage(), $e->getRequiredFields(), $e->getPrefill(), $e);
+            throw new ProviderActionRequiredException(
+                __('Additional shipment verification is required before tracking can be retrieved.'),
+                $e->getRequiredFields(),
+                $e->getPrefill(),
+                $e
+            );
         }
 
         return null;
@@ -76,7 +93,12 @@ class Track123Provider implements TrackingProviderInterface
         try {
             $response = $this->httpClient->query($payload, $context->storeId, $context->verification);
         } catch (AdditionalVerificationRequiredException $e) {
-            throw new ProviderActionRequiredException($e->getRawMessage(), $e->getRequiredFields(), $e->getPrefill(), $e);
+            throw new ProviderActionRequiredException(
+                __('Additional shipment verification is required before tracking can be retrieved.'),
+                $e->getRequiredFields(),
+                $e->getPrefill(),
+                $e
+            );
         }
 
         $items = $this->payloadMapper->mapResponseItems($response);

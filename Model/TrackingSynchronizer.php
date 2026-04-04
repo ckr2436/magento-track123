@@ -28,7 +28,7 @@ class TrackingSynchronizer
      * @param array{postal_code?:string,phone_suffix?:string} $manualVerification
      * @throws LocalizedException
      */
-    public function registerTrack(Track $track, array $manualVerification = []): void
+    public function registerTrack(Track $track, array $manualVerification = [], ?string $forcedProviderCode = null): void
     {
         $trackingNumber = trim((string)$track->getTrackNumber());
         if ($trackingNumber === '') {
@@ -37,7 +37,9 @@ class TrackingSynchronizer
 
         $shipment = $track->getShipment();
         $order = $shipment->getOrder();
-        $providerCode = $this->resolveProviderCodeForTrack($track);
+        $providerCode = $forcedProviderCode !== null && trim($forcedProviderCode) !== ''
+            ? trim($forcedProviderCode)
+            : $this->resolveProviderCodeForTrack($track);
 
         $this->executeWithAdaptiveVerification(
             $order,
@@ -57,7 +59,7 @@ class TrackingSynchronizer
      * @return array<string,mixed>|null
      * @throws LocalizedException
      */
-    public function queryTrack(Track $track, array $manualVerification = []): ?array
+    public function queryTrack(Track $track, array $manualVerification = [], ?string $forcedProviderCode = null): ?array
     {
         $trackingNumber = trim((string)$track->getTrackNumber());
         if ($trackingNumber === '') {
@@ -66,7 +68,9 @@ class TrackingSynchronizer
 
         $shipment = $track->getShipment();
         $order = $shipment->getOrder();
-        $providerCode = $this->resolveProviderCodeForTrack($track);
+        $providerCode = $forcedProviderCode !== null && trim($forcedProviderCode) !== ''
+            ? trim($forcedProviderCode)
+            : $this->resolveProviderCodeForTrack($track);
 
         $result = $this->executeWithAdaptiveVerification(
             $order,
@@ -257,7 +261,12 @@ class TrackingSynchronizer
             trackingNumber: (string)$track->getTrackNumber(),
             carrierCode: (string)$track->getCarrierCode(),
             carrierTitle: (string)$track->getTitle(),
-            verification: $verification
+            verification: $verification,
+            extra: [
+                'track' => $track,
+                'raw_carrier_code' => (string)$track->getCarrierCode(),
+                'raw_carrier_title' => (string)$track->getTitle(),
+            ]
         );
     }
 }
