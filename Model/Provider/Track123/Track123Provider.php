@@ -100,7 +100,7 @@ class Track123Provider implements TrackingProviderInterface
         return $this->detectCourierCode($context->trackingNumber, $context->storeId, $context->trackId);
     }
 
-    private function detectCourierCode(string $trackingNumber, ?int $storeId, int $trackId): ?string
+    private function detectCourierCode(string $trackingNumber, ?int $storeId, ?int $trackId): ?string
     {
         $attemptPayloads = [
             ['tracking_number' => $trackingNumber],
