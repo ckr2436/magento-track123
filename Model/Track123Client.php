@@ -100,21 +100,21 @@ class Track123Client
             'headers' => [
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
-                'Track123-Api-Secret' => trim($secret),
+                'Track123-Api-Secret' => '[REDACTED]',
             ],
             'payload' => $payload,
             'body' => $body,
         ];
 
         if ($this->config->isDebug($storeId)) {
-            $this->logger->info('Track123 request prepared', $requestContext);
+            $this->logger->info('Track123 request prepared', $this->sanitizeContext($requestContext));
         }
 
         try {
             $curl->post($url, $body);
         } catch (\Throwable $e) {
             $this->logger->error('Track123 HTTP transport error', [
-                'request' => $requestContext,
+                'request' => $this->sanitizeContext($requestContext),
                 'exception' => $e,
             ]);
             throw new LocalizedException(__('Track123 request failed: %1', $e->getMessage()));
@@ -126,9 +126,9 @@ class Track123Client
 
         if (!is_array($decoded)) {
             $this->logger->error('Track123 returned invalid JSON', [
-                'request' => $requestContext,
+                'request' => $this->sanitizeContext($requestContext),
                 'status' => $status,
-                'body' => $responseBody,
+                'body' => $this->maskString($responseBody),
             ]);
             throw new LocalizedException(__('Track123 returned invalid JSON. HTTP %1', $status));
         }
@@ -145,7 +145,7 @@ class Track123Client
         if ($status < 200 || $status >= 300 || $this->isBusinessErrorResponse($decoded, $path)) {
             $message = $this->buildActionableErrorMessage($decoded, $status, $path, $url);
             $this->logger->error('Track123 returned an error', [
-                'request' => $requestContext,
+                'request' => $this->sanitizeContext($requestContext),
                 'status' => $status,
                 'response' => $decoded,
             ]);
@@ -154,7 +154,7 @@ class Track123Client
 
         if ($this->config->isDebug($storeId)) {
             $this->logger->info('Track123 request success', [
-                'request' => $requestContext,
+                'request' => $this->sanitizeContext($requestContext),
                 'status' => $status,
             ]);
         }
@@ -456,5 +456,30 @@ class Track123Client
         $walker($decoded);
 
         return array_values(array_unique(array_filter($fields)));
+    }
+
+    /**
+     * @param array<string,mixed> $context
+     * @return array<string,mixed>
+     */
+    private function sanitizeContext(array $context): array
+    {
+        $json = json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if (!is_string($json)) {
+            return $context;
+        }
+
+        $json = preg_replace('/("(?:Track123-Api-Secret|api_secret|secret|phoneSuffix|postalCode|orderNo|trackNo)"\s*:\s*")[^"]*(")/i', '$1[REDACTED]$2', $json) ?: $json;
+        $decoded = json_decode($json, true);
+        return is_array($decoded) ? $decoded : $context;
+    }
+
+    private function maskString(string $value): string
+    {
+        if ($value === '') {
+            return $value;
+        }
+
+        return '[REDACTED_BODY length=' . strlen($value) . ']';
     }
 }

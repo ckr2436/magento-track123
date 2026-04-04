@@ -9,4 +9,15 @@
             </argument>
         </arguments>
     </type>
+
+    <preference for="Pynarae\Tracking\Api\Provider\ProviderResolverInterface"
+                type="Pynarae\Tracking\Model\Provider\ProviderResolver"/>
+
+    <type name="Pynarae\Tracking\Model\Provider\ProviderPool">
+        <arguments>
+            <argument name="providers" xsi:type="array">
+                <item name="track123" xsi:type="object">Pynarae\Tracking\Model\Provider\Track123\Track123Provider</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

@@ -8,15 +8,16 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment\Track;
 use Psr\Log\LoggerInterface;
+use Pynarae\Tracking\Exception\ProviderActionRequiredException;
+use Pynarae\Tracking\Model\Dto\ProviderContext;
 use Pynarae\Tracking\Model\Exception\AdditionalVerificationRequiredException;
+use Pynarae\Tracking\Model\Provider\ProviderResolver;
 
 class TrackingSynchronizer
 {
     public function __construct(
-        private readonly Track123Client $track123Client,
-        private readonly CourierCodeResolver $courierCodeResolver,
+        private readonly ProviderResolver $providerResolver,
         private readonly TrackingCacheManager $trackingCacheManager,
-        private readonly Track123PayloadExtractor $payloadExtractor,
         private readonly VerificationContextResolver $verificationContextResolver,
         private readonly Config $config,
         private readonly LoggerInterface $logger
@@ -29,7 +30,6 @@ class TrackingSynchronizer
      */
     public function registerTrack(Track $track, array $manualVerification = []): void
     {
-        $storeId = (int)$track->getStoreId();
         $trackingNumber = trim((string)$track->getTrackNumber());
         if ($trackingNumber === '') {
             throw new LocalizedException(__('Shipment track has no tracking number.'));
@@ -37,27 +37,16 @@ class TrackingSynchronizer
 
         $shipment = $track->getShipment();
         $order = $shipment->getOrder();
-
-        $courierCode = $this->courierCodeResolver->resolve($track, $storeId);
-        if ($courierCode === null && $this->config->shouldAutoDetectCarrier($storeId)) {
-            $courierCode = $this->detectCourierCode($trackingNumber, (int)$track->getId(), $storeId);
-        }
-
-        $payload = [
-            [
-                'trackNo' => $trackingNumber,
-                'orderNo' => (string)$order->getIncrementId(),
-            ],
-        ];
-
-        if ($courierCode) {
-            $payload[0]['courierCode'] = $courierCode;
-        }
+        $providerCode = $this->resolveProviderCodeForTrack($track);
 
         $this->executeWithAdaptiveVerification(
             $order,
             $manualVerification,
-            fn(array $context) => $this->track123Client->registerTrackings($payload, $storeId, $context)
+            function (array $verificationContext) use ($track, $order, $providerCode) {
+                $provider = $this->providerResolver->resolveByCode($providerCode);
+                $context = $this->buildProviderContext($track, $order, $providerCode, $verificationContext);
+                $provider->register($context);
+            }
         );
 
         $this->trackingCacheManager->markRegistered((int)$track->getId(), true);
@@ -65,12 +54,11 @@ class TrackingSynchronizer
 
     /**
      * @param array{postal_code?:string,phone_suffix?:string} $manualVerification
-     * @return array<string, mixed>|null
+     * @return array<string,mixed>|null
      * @throws LocalizedException
      */
     public function queryTrack(Track $track, array $manualVerification = []): ?array
     {
-        $storeId = (int)$track->getStoreId();
         $trackingNumber = trim((string)$track->getTrackNumber());
         if ($trackingNumber === '') {
             throw new LocalizedException(__('Shipment track has no tracking number.'));
@@ -78,31 +66,23 @@ class TrackingSynchronizer
 
         $shipment = $track->getShipment();
         $order = $shipment->getOrder();
+        $providerCode = $this->resolveProviderCodeForTrack($track);
 
-        $response = $this->executeWithAdaptiveVerification(
+        $result = $this->executeWithAdaptiveVerification(
             $order,
             $manualVerification,
-            fn(array $context) => $this->track123Client->queryTrackings(
-                [
-                    'trackNoInfos' => [
-                        ['trackNo' => $trackingNumber],
-                    ],
-                    'orderNos' => [(string)$order->getIncrementId()],
-                    'cursor' => '',
-                    'queryPageSize' => 100,
-                ],
-                $storeId,
-                $context
-            )
+            function (array $verificationContext) use ($track, $order, $providerCode) {
+                $provider = $this->providerResolver->resolveByCode($providerCode);
+                $context = $this->buildProviderContext($track, $order, $providerCode, $verificationContext);
+                return $provider->query($context);
+            }
         );
 
-        $items = $this->payloadExtractor->extractTrackingItems($response);
-        $item = $items[0] ?? null;
-        if (!is_array($item)) {
+        if ($result === null) {
             return null;
         }
 
-        $this->trackingCacheManager->upsertFromTrack123Payload($item, [
+        $this->trackingCacheManager->upsertFromProviderResult($result, [
             'track_id' => (int)$track->getId(),
             'store_id' => (int)$track->getStoreId(),
             'order_id' => (int)$shipment->getOrderId(),
@@ -111,22 +91,22 @@ class TrackingSynchronizer
             'tracking_number' => $trackingNumber,
         ]);
 
-        return $item;
+        return $result->rawPayload;
     }
 
     /**
      * @param array{postal_code?:string,phone_suffix?:string} $manualVerification
-     * @param callable(array{postal_code?:string,phone_suffix?:string}):array<string,mixed> $operation
-     * @return array<string, mixed>
+     * @param callable(array{postal_code?:string,phone_suffix?:string}):mixed $operation
+     * @return mixed
      * @throws LocalizedException
      */
-    private function executeWithAdaptiveVerification(Order $order, array $manualVerification, callable $operation): array
+    private function executeWithAdaptiveVerification(Order $order, array $manualVerification, callable $operation): mixed
     {
         $manualContext = $this->verificationContextResolver->forOrder($order, $manualVerification);
         if ($manualContext !== []) {
             try {
                 return $operation($manualContext);
-            } catch (AdditionalVerificationRequiredException $e) {
+            } catch (ProviderActionRequiredException $e) {
                 $required = $this->normalizeChallengeForUi($e->getRequiredFields());
                 throw new AdditionalVerificationRequiredException(
                     __('Additional shipment verification is still required. Please verify the requested fields and try again.'),
@@ -138,14 +118,14 @@ class TrackingSynchronizer
 
         try {
             return $operation([]);
-        } catch (AdditionalVerificationRequiredException $e) {
+        } catch (ProviderActionRequiredException $e) {
             $autoContext = $this->verificationContextResolver->forOrder($order, []);
             $attempts = $this->buildAdaptiveAttempts($e->getRequiredFields(), $autoContext);
 
             foreach ($attempts as $context) {
                 try {
                     return $operation($context);
-                } catch (AdditionalVerificationRequiredException $next) {
+                } catch (ProviderActionRequiredException $next) {
                     $e = $next;
                     continue;
                 }
@@ -201,7 +181,6 @@ class TrackingSynchronizer
                 $attempts[] = ['phone_suffix' => $autoContext['phone_suffix']];
             }
         } else {
-            // 返回不明确：先 postalCode，再 phoneSuffix，最后两者一起
             if ($hasPostal) {
                 $attempts[] = ['postal_code' => $autoContext['postal_code']];
             }
@@ -252,96 +231,33 @@ class TrackingSynchronizer
         return $normalized;
     }
 
-
-    private function detectCourierCode(string $trackingNumber, int $trackId, ?int $storeId = null): ?string
+    private function resolveProviderCodeForTrack(Track $track): string
     {
-        $attemptPayloads = [
-            ['tracking_number' => $trackingNumber],
-            ['trackNo' => $trackingNumber],
-        ];
-
-        $attemptedPayloadKeys = [];
-        $lastException = null;
-
-        foreach ($attemptPayloads as $payload) {
-            $attemptedPayloadKeys[] = array_keys($payload);
-
-            try {
-                $detect = $this->track123Client->detectCourier($payload, $storeId);
-                $code = $this->extractDetectedCode($detect);
-                if ($code !== null) {
-                    return $code;
-                }
-            } catch (\Throwable $e) {
-                $lastException = $e;
-                if (!$e instanceof LocalizedException) {
-                    break;
-                }
-
-                if (!$this->shouldRetryCourierDetection($e)) {
-                    break;
-                }
-            }
+        $cache = $this->trackingCacheManager->getByTrackId((int)$track->getId());
+        $cachedProvider = trim((string)($cache?->getData('provider_code') ?? ''));
+        if ($cachedProvider !== '') {
+            return $cachedProvider;
         }
 
-        if ($lastException !== null) {
-            $this->logger->warning('Track123 carrier detection failed', [
-                'track_id' => $trackId,
-                'attempted_payload_keys' => $attemptedPayloadKeys,
-                'exception' => $lastException,
-            ]);
-        }
-
-        return null;
-    }
-
-    private function shouldRetryCourierDetection(LocalizedException $exception): bool
-    {
-        if ($exception instanceof AdditionalVerificationRequiredException) {
-            return true;
-        }
-
-        $message = mb_strtolower($exception->getMessage());
-
-        // Retry fallback payload unless we are certain the failure is unrelated
-        // to payload shape compatibility.
-        $nonRetryableMarkers = [
-            'api secret is not configured',
-            'request failed',
-            'returned invalid json',
-        ];
-
-        foreach ($nonRetryableMarkers as $marker) {
-            if (str_contains($message, $marker)) {
-                return false;
-            }
-        }
-
-        return true;
+        return $this->config->getDefaultProvider((int)$track->getStoreId());
     }
 
     /**
-     * @param array<string, mixed> $response
+     * @param array{postal_code?:string,phone_suffix?:string} $verification
      */
-    private function extractDetectedCode(array $response): ?string
+    private function buildProviderContext(Track $track, Order $order, string $providerCode, array $verification): ProviderContext
     {
-        foreach (['data', 'result'] as $key) {
-            $candidate = $response[$key] ?? null;
-            if (is_array($candidate)) {
-                if (isset($candidate['code']) && is_string($candidate['code'])) {
-                    return $candidate['code'];
-                }
-                if (array_is_list($candidate) && isset($candidate[0]['code']) && is_string($candidate[0]['code'])) {
-                    return $candidate[0]['code'];
-                }
-                foreach (['items', 'list'] as $nested) {
-                    if (isset($candidate[$nested][0]['code']) && is_string($candidate[$nested][0]['code'])) {
-                        return $candidate[$nested][0]['code'];
-                    }
-                }
-            }
-        }
-
-        return null;
+        return new ProviderContext(
+            providerCode: $providerCode,
+            storeId: (int)$track->getStoreId(),
+            orderId: (int)$order->getId(),
+            shipmentId: (int)$track->getParentId(),
+            trackId: (int)$track->getId(),
+            orderIncrementId: (string)$order->getIncrementId(),
+            trackingNumber: (string)$track->getTrackNumber(),
+            carrierCode: (string)$track->getCarrierCode(),
+            carrierTitle: (string)$track->getTitle(),
+            verification: $verification
+        );
     }
 }

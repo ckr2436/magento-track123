@@ -11,6 +11,7 @@
                 <cache_ttl_minutes>60</cache_ttl_minutes>
                 <query_stale_after_minutes>30</query_stale_after_minutes>
                 <max_events_display>8</max_events_display>
+                <default_provider>track123</default_provider>
             </general>
             <api>
                 <base_url>https://api.track123.com/gateway/open-api/tk/v2.1</base_url>

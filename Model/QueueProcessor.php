@@ -79,6 +79,8 @@ class QueueProcessor
         $job->setData('order_id', $registerJob->getData('order_id'));
         $job->setData('shipment_id', $registerJob->getData('shipment_id'));
         $job->setData('track_id', $registerJob->getData('track_id'));
+        $job->setData('provider_code', $registerJob->getData('provider_code'));
+        $job->setData('provider_ref', $registerJob->getData('provider_ref'));
         $job->setData('tracking_number', $registerJob->getData('tracking_number'));
         $job->setData('payload_json', $registerJob->getData('payload_json'));
         $job->setData('status', Job::STATUS_PENDING);
@@ -86,7 +88,7 @@ class QueueProcessor
         $job->setData('next_run_at', $this->dateTime->gmtDate());
         $job->setData('locked_at', null);
         $job->setData('last_error', null);
-        $job->setData('unique_hash', hash('sha256', Job::TYPE_QUERY . '|' . (string) $registerJob->getData('track_id') . '|' . (string) $registerJob->getData('tracking_number')));
+        $job->setData('unique_hash', hash('sha256', Job::TYPE_QUERY . '|' . (string)$registerJob->getData('provider_code') . '|' . (string) $registerJob->getData('track_id') . '|' . (string) $registerJob->getData('tracking_number')));
         $this->jobResource->save($job);
     }
 
