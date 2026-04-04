@@ -8,10 +8,16 @@
         <column xsi:type="varchar" name="order_increment_id" nullable="true" length="64" comment="Order Increment ID"/>
         <column xsi:type="int" name="shipment_id" nullable="true" unsigned="true" comment="Shipment ID"/>
         <column xsi:type="int" name="track_id" nullable="true" unsigned="true" comment="Shipment Track ID"/>
+        <column xsi:type="varchar" name="provider_code" nullable="false" length="32" default="track123" comment="Tracking Provider Code"/>
+        <column xsi:type="varchar" name="provider_tracker_id" nullable="true" length="128" comment="Provider Tracker ID"/>
+        <column xsi:type="varchar" name="provider_shipment_id" nullable="true" length="128" comment="Provider Shipment ID"/>
         <column xsi:type="varchar" name="tracking_number" nullable="false" length="128" comment="Tracking Number"/>
         <column xsi:type="varchar" name="carrier_code" nullable="true" length="128" comment="Carrier Code"/>
         <column xsi:type="varchar" name="carrier_name" nullable="true" length="255" comment="Carrier Name"/>
         <column xsi:type="varchar" name="normalized_status" nullable="true" length="64" comment="Normalized Status"/>
+        <column xsi:type="varchar" name="provider_status_code" nullable="true" length="128" comment="Provider Status Code"/>
+        <column xsi:type="varchar" name="provider_status_category" nullable="true" length="128" comment="Provider Status Category"/>
+        <column xsi:type="varchar" name="provider_status_milestone" nullable="true" length="128" comment="Provider Status Milestone"/>
         <column xsi:type="varchar" name="transit_status" nullable="true" length="128" comment="Track123 Transit Status"/>
         <column xsi:type="varchar" name="transit_sub_status" nullable="true" length="255" comment="Track123 Transit Sub Status"/>
         <column xsi:type="varchar" name="signed_by" nullable="true" length="255" comment="Signed By"/>
@@ -55,6 +61,18 @@
         <index referenceId="PYNARAE_TRACKING_CACHE_TRACKING_NUMBER_IDX" indexType="btree">
             <column name="tracking_number"/>
         </index>
+        <index referenceId="PYNARAE_TRACKING_CACHE_PROVIDER_TRACK_ID_IDX" indexType="btree">
+            <column name="provider_code"/>
+            <column name="track_id"/>
+        </index>
+        <index referenceId="PYNARAE_TRACKING_CACHE_PROVIDER_TRACKING_NUMBER_IDX" indexType="btree">
+            <column name="provider_code"/>
+            <column name="tracking_number"/>
+        </index>
+        <index referenceId="PYNARAE_TRACKING_CACHE_PROVIDER_TRACKER_ID_IDX" indexType="btree">
+            <column name="provider_code"/>
+            <column name="provider_tracker_id"/>
+        </index>
         <index referenceId="PYNARAE_TRACKING_CACHE_LAST_SYNCED_AT_IDX" indexType="btree">
             <column name="last_synced_at"/>
         </index>
@@ -67,6 +85,8 @@
         <column xsi:type="int" name="order_id" nullable="true" unsigned="true" comment="Order ID"/>
         <column xsi:type="int" name="shipment_id" nullable="true" unsigned="true" comment="Shipment ID"/>
         <column xsi:type="int" name="track_id" nullable="true" unsigned="true" comment="Track ID"/>
+        <column xsi:type="varchar" name="provider_code" nullable="false" length="32" default="track123" comment="Tracking Provider Code"/>
+        <column xsi:type="varchar" name="provider_ref" nullable="true" length="128" comment="Provider Reference"/>
         <column xsi:type="varchar" name="tracking_number" nullable="true" length="128" comment="Tracking Number"/>
         <column xsi:type="mediumtext" name="payload_json" nullable="true" comment="Payload JSON"/>
         <column xsi:type="varchar" name="status" nullable="false" length="32" default="pending" comment="Job Status"/>
@@ -101,6 +121,11 @@
             <column name="status"/>
             <column name="next_run_at"/>
         </index>
+        <index referenceId="PYNARAE_TRACKING_JOB_PROVIDER_STATUS_NEXT_RUN_AT_IDX" indexType="btree">
+            <column name="provider_code"/>
+            <column name="status"/>
+            <column name="next_run_at"/>
+        </index>
         <index referenceId="PYNARAE_TRACKING_JOB_UNIQUE_HASH_IDX" indexType="btree">
             <column name="unique_hash"/>
         </index>
@@ -108,6 +133,9 @@
 
     <table name="pynarae_tracking_webhook_log" resource="default" engine="innodb" comment="Pynarae Tracking Webhook Log">
         <column xsi:type="int" name="entity_id" nullable="false" identity="true" unsigned="true" comment="Entity ID"/>
+        <column xsi:type="varchar" name="provider_code" nullable="false" length="32" default="track123" comment="Tracking Provider Code"/>
+        <column xsi:type="varchar" name="provider_message_id" nullable="true" length="128" comment="Provider Message ID"/>
+        <column xsi:type="varchar" name="provider_topic" nullable="true" length="128" comment="Provider Topic"/>
         <column xsi:type="varchar" name="timestamp_header" nullable="true" length="64" comment="Timestamp Header"/>
         <column xsi:type="varchar" name="signature_header" nullable="true" length="255" comment="Signature Header"/>
         <column xsi:type="varchar" name="payload_hash" nullable="true" length="64" comment="Payload Hash"/>

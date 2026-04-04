@@ -24,7 +24,8 @@ class QueueManager
      */
     public function enqueue(string $jobType, array $context, ?int $storeId = null): Job
     {
-        $dedupeHash = hash('sha256', $jobType . '|' . ((string) ($context['track_id'] ?? '0')) . '|' . ((string) ($context['tracking_number'] ?? '')));
+        $providerCode = (string)($context['provider_code'] ?? $this->config->getDefaultProvider($storeId));
+        $dedupeHash = hash('sha256', $jobType . '|' . $providerCode . '|' . ((string) ($context['track_id'] ?? '0')) . '|' . ((string) ($context['tracking_number'] ?? '')));
         $existing = $this->findPendingByHash($dedupeHash);
         if ($existing) {
             return $existing;
@@ -37,6 +38,8 @@ class QueueManager
             'order_id' => $context['order_id'] ?? null,
             'shipment_id' => $context['shipment_id'] ?? null,
             'track_id' => $context['track_id'] ?? null,
+            'provider_code' => $providerCode,
+            'provider_ref' => $context['provider_ref'] ?? null,
             'tracking_number' => $context['tracking_number'] ?? null,
             'payload_json' => json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             'status' => Job::STATUS_PENDING,

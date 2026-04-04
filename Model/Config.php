@@ -17,6 +17,7 @@ class Config
     public const XML_PATH_CACHE_TTL = 'pynarae_tracking/general/cache_ttl_minutes';
     public const XML_PATH_STALE_AFTER = 'pynarae_tracking/general/query_stale_after_minutes';
     public const XML_PATH_MAX_EVENTS = 'pynarae_tracking/general/max_events_display';
+    public const XML_PATH_DEFAULT_PROVIDER = 'pynarae_tracking/general/default_provider';
 
     public const XML_PATH_API_BASE_URL = 'pynarae_tracking/api/base_url';
     public const XML_PATH_API_SECRET = 'pynarae_tracking/api/api_secret';
@@ -76,6 +77,12 @@ class Config
     public function getMaxEventsDisplay(?int $storeId = null): int
     {
         return max(1, (int) $this->getValue(self::XML_PATH_MAX_EVENTS, $storeId));
+    }
+
+    public function getDefaultProvider(?int $storeId = null): string
+    {
+        $value = trim((string)$this->getValue(self::XML_PATH_DEFAULT_PROVIDER, $storeId));
+        return $value !== '' ? $value : 'track123';
     }
 
     public function getApiBaseUrl(?int $storeId = null): string
