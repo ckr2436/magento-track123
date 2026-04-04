@@ -17,6 +17,7 @@
         <arguments>
             <argument name="providers" xsi:type="array">
                 <item name="track123" xsi:type="object">Pynarae\Tracking\Model\Provider\Track123\Track123Provider</item>
+                <item name="ship24" xsi:type="object">Pynarae\Tracking\Model\Provider\Ship24\Ship24Provider</item>
             </argument>
         </arguments>
     </type>

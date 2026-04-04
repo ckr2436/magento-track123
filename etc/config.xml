@@ -13,13 +13,22 @@
                 <max_events_display>8</max_events_display>
                 <default_provider>track123</default_provider>
             </general>
-            <api>
+            <providers_track123>
+                <enabled>1</enabled>
                 <base_url>https://api.track123.com/gateway/open-api/tk/v2.1</base_url>
                 <request_timeout>15</request_timeout>
                 <connect_timeout>5</connect_timeout>
                 <auto_detect_carrier>1</auto_detect_carrier>
                 <carrier_mapping><![CDATA[]]></carrier_mapping>
-            </api>
+            </providers_track123>
+            <providers_ship24>
+                <enabled>0</enabled>
+                <base_url>https://api.ship24.com</base_url>
+                <request_timeout>15</request_timeout>
+                <connect_timeout>5</connect_timeout>
+                <use_create_and_track_endpoint>0</use_create_and_track_endpoint>
+                <restrict_tracking_to_courier_code>0</restrict_tracking_to_courier_code>
+            </providers_ship24>
             <sync>
                 <auto_register_on_track_save>1</auto_register_on_track_save>
                 <process_queue_batch_size>25</process_queue_batch_size>

@@ -34,7 +34,7 @@ class Track123Provider implements TrackingProviderInterface
 
     public function isEnabled(?int $storeId = null): bool
     {
-        return $this->config->isEnabled($storeId);
+        return $this->config->isEnabled($storeId) && $this->config->isTrack123Enabled($storeId);
     }
 
     public function supportsRegistration(): bool
