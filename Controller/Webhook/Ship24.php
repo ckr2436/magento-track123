@@ -35,14 +35,23 @@ class Ship24 extends Action implements HttpPostActionInterface, CsrfAwareActionI
     public function execute()
     {
         $result = $this->jsonFactory->create();
+
         if (!$this->config->isWebhookEnabled()) {
-            return $result->setHttpResponseCode(404)->setData(['ok' => false, 'message' => 'Webhook disabled']);
+            return $result->setHttpResponseCode(404)->setData([
+                'ok' => false,
+                'message' => 'Webhook disabled',
+            ]);
         }
 
         $method = strtoupper((string)$this->getRequest()->getMethod());
         $rawBody = (string)$this->getRequest()->getContent();
+
         if ($method !== 'POST' || trim($rawBody) === '') {
-            return $result->setData(['ok' => true, 'message' => 'Webhook endpoint reachable.', 'method' => $method]);
+            return $result->setData([
+                'ok' => true,
+                'message' => 'Webhook endpoint reachable.',
+                'method' => $method,
+            ]);
         }
 
         $payload = json_decode($rawBody, true);
@@ -61,10 +70,19 @@ class Ship24 extends Action implements HttpPostActionInterface, CsrfAwareActionI
 
         $verified = $this->provider->verifyWebhook($webhookRequest);
 
+        $firstTracking = [];
+        if (is_array($payload) && isset($payload['trackings'][0]) && is_array($payload['trackings'][0])) {
+            $firstTracking = $payload['trackings'][0];
+        }
+
+        $firstMetadata = is_array($firstTracking['metadata'] ?? null) ? $firstTracking['metadata'] : [];
+
         $logData = [
             'provider_code' => 'ship24',
+            'provider_message_id' => isset($firstMetadata['messageId']) ? (string)$firstMetadata['messageId'] : null,
+            'provider_topic' => isset($firstMetadata['topic']) ? (string)$firstMetadata['topic'] : null,
             'timestamp_header' => null,
-            'signature_header' => mb_substr($headers['authorization'], 0, 255),
+            'signature_header' => $headers['authorization'] !== '' ? hash('sha256', $headers['authorization']) : null,
             'payload_hash' => hash('sha256', $rawBody),
             'is_verified' => $verified ? 1 : 0,
             'process_status' => 'received',
@@ -75,6 +93,10 @@ class Ship24 extends Action implements HttpPostActionInterface, CsrfAwareActionI
         try {
             if (!is_array($payload)) {
                 throw new \RuntimeException('Invalid webhook JSON payload.');
+            }
+
+            if (!isset($payload['trackings']) || !is_array($payload['trackings'])) {
+                throw new \RuntimeException('Invalid Ship24 webhook payload: missing trackings array.');
             }
 
             if (!$verified && $this->config->isStrictSignatureValidation()) {
@@ -91,13 +113,24 @@ class Ship24 extends Action implements HttpPostActionInterface, CsrfAwareActionI
         } catch (\Throwable $e) {
             $logData['process_status'] = 'failed';
             $logData['error_message'] = mb_substr($e->getMessage(), 0, 65535);
-            $this->logger->error('Ship24 webhook processing failed', ['exception' => $e]);
+
+            $this->logger->error('Ship24 webhook processing failed', [
+                'exception' => $e,
+            ]);
+
             $this->webhookLogRepository->insert($logData);
-            return $result->setHttpResponseCode(400)->setData(['ok' => false, 'message' => $e->getMessage()]);
+
+            return $result->setHttpResponseCode(400)->setData([
+                'ok' => false,
+                'message' => $e->getMessage(),
+            ]);
         }
 
         $this->webhookLogRepository->insert($logData);
-        return $result->setData(['ok' => true]);
+
+        return $result->setData([
+            'ok' => true,
+        ]);
     }
 
     public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException

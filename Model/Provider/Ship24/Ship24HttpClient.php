@@ -43,7 +43,7 @@ class Ship24HttpClient
      */
     private function post(string $path, array $payload, ?int $storeId = null): array
     {
-        $apiKey = $this->config->getShip24ApiKey($storeId);
+        $apiKey = trim($this->config->getShip24ApiKey($storeId));
         if ($apiKey === '') {
             throw new LocalizedException(__('Ship24 API key is not configured.'));
         }
@@ -57,13 +57,17 @@ class Ship24HttpClient
         $curl->addHeader('Content-Type', 'application/json');
         $curl->addHeader('Authorization', 'Bearer ' . $apiKey);
 
-        $body = (string)json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $url = $this->config->getShip24BaseUrl($storeId) . $path;
+        $body = (string)json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         try {
             $curl->post($url, $body);
         } catch (\Throwable $e) {
-            $this->logger->error('Ship24 HTTP transport error', ['url' => $url, 'exception' => $e]);
+            $this->logger->error('Ship24 HTTP transport error', [
+                'url' => $url,
+                'path' => $path,
+                'exception' => $e,
+            ]);
             throw new LocalizedException(__('Ship24 request failed: %1', $e->getMessage()));
         }
 
@@ -72,14 +76,50 @@ class Ship24HttpClient
         $decoded = json_decode($responseBody, true);
 
         if (!is_array($decoded)) {
+            $this->logger->error('Ship24 returned invalid JSON', [
+                'url' => $url,
+                'path' => $path,
+                'status' => $status,
+                'body_length' => strlen($responseBody),
+            ]);
             throw new LocalizedException(__('Ship24 returned invalid JSON. HTTP %1', $status));
         }
 
         if ($status < 200 || $status >= 300) {
-            $message = (string)($decoded['message'] ?? $decoded['error'] ?? 'Unknown Ship24 error.');
+            $message = $this->extractErrorMessage($decoded);
+            $this->logger->error('Ship24 returned an error', [
+                'url' => $url,
+                'path' => $path,
+                'status' => $status,
+                'response' => $decoded,
+            ]);
             throw new LocalizedException(__('Ship24 error: HTTP %1: %2', $status, $message));
         }
 
         return $decoded;
+    }
+
+    /**
+     * @param array<string,mixed> $decoded
+     */
+    private function extractErrorMessage(array $decoded): string
+    {
+        if (isset($decoded['errors'][0]['message']) && is_string($decoded['errors'][0]['message'])) {
+            return $decoded['errors'][0]['message'];
+        }
+
+        if (isset($decoded['error']['message']) && is_string($decoded['error']['message'])) {
+            return $decoded['error']['message'];
+        }
+
+        if (isset($decoded['error']) && is_string($decoded['error'])) {
+            return $decoded['error'];
+        }
+
+        if (isset($decoded['message']) && is_string($decoded['message'])) {
+            return $decoded['message'];
+        }
+
+        return 'Unknown Ship24 error.';
     }
 }

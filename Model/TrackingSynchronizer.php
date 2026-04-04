@@ -251,6 +251,11 @@ class TrackingSynchronizer
      */
     private function buildProviderContext(Track $track, Order $order, string $providerCode, array $verification): ProviderContext
     {
+        $shipment = $track->getShipment();
+        $shippingAddress = $order->getShippingAddress();
+        $billingAddress = $order->getBillingAddress();
+        $address = $shippingAddress ?: $billingAddress;
+
         return new ProviderContext(
             providerCode: $providerCode,
             storeId: (int)$track->getStoreId(),
@@ -266,6 +271,9 @@ class TrackingSynchronizer
                 'track' => $track,
                 'raw_carrier_code' => (string)$track->getCarrierCode(),
                 'raw_carrier_title' => (string)$track->getTitle(),
+                'ship24_destination_country_code' => (string)($address?->getCountryId() ?: ''),
+                'ship24_destination_post_code' => (string)($address?->getPostcode() ?: ''),
+                'ship24_shipping_date' => (string)($shipment?->getCreatedAt() ?: $order->getCreatedAt() ?: ''),
             ]
         );
     }
