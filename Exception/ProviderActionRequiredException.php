@@ -16,7 +16,7 @@ class ProviderActionRequiredException extends ProviderException
         Phrase $phrase,
         private readonly array $requiredFields = [],
         private readonly array $prefill = [],
-        ?\Throwable $cause = null
+        ?\Exception $cause = null
     ) {
         parent::__construct($phrase, $cause);
     }
