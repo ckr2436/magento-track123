@@ -13,6 +13,7 @@ class DefaultProvider implements OptionSourceInterface
         return [
             ['value' => 'track123', 'label' => __('Track123')],
             ['value' => 'ship24', 'label' => __('Ship24')],
+            ['value' => 'kd100', 'label' => __('KeyDelivery / KD100')],
         ];
     }
 }
