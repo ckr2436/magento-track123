@@ -29,6 +29,16 @@
                 <use_create_and_track_endpoint>0</use_create_and_track_endpoint>
                 <restrict_tracking_to_courier_code>0</restrict_tracking_to_courier_code>
             </providers_ship24>
+            <providers_kd100>
+                <enabled>0</enabled>
+                <base_url>https://www.kd100.com</base_url>
+                <request_timeout>15</request_timeout>
+                <connect_timeout>5</connect_timeout>
+                <auto_detect_carrier>1</auto_detect_carrier>
+                <carrier_mapping><![CDATA[]]></carrier_mapping>
+                <default_ship_from><![CDATA[]]></default_ship_from>
+                <webhook_url><![CDATA[]]></webhook_url>
+            </providers_kd100>
             <sync>
                 <auto_register_on_track_save>1</auto_register_on_track_save>
                 <process_queue_batch_size>25</process_queue_batch_size>
