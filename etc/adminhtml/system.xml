@@ -113,6 +113,52 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
+            <group id="providers_kd100" translate="label" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Provider: KeyDelivery / KD100</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable KeyDelivery / KD100</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="base_url" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Base URL</label>
+                    <comment>Default: https://www.kd100.com</comment>
+                </field>
+                <field id="api_key" translate="label comment" type="obscure" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>API Key</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment>Prefer setting this via `bin/magento config:sensitive:set pynarae_tracking/providers_kd100/api_key ...`.</comment>
+                </field>
+                <field id="api_secret" translate="label comment" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>API Secret</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment>Prefer setting this via `bin/magento config:sensitive:set pynarae_tracking/providers_kd100/api_secret ...`.</comment>
+                </field>
+                <field id="request_timeout" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Request Timeout (seconds)</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                </field>
+                <field id="connect_timeout" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Connect Timeout (seconds)</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                </field>
+                <field id="auto_detect_carrier" translate="label comment" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Auto Detect Carrier</label>
+                    <comment>If a usable carrier ID is not mapped locally, try KeyDelivery carrier auto-detection.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="carrier_mapping" translate="label comment" type="textarea" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Carrier Mapping</label>
+                    <comment><![CDATA[One mapping per line. Map Magento carrier code/title to KeyDelivery carrier_id. Examples:<br/>usps=usps<br/>dhl=dhl<br/>custom:USPS=usps]]></comment>
+                </field>
+                <field id="default_ship_from" translate="label comment" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default Ship From</label>
+                    <comment>Optional. Example: Los Angeles, CA, United States.</comment>
+                </field>
+                <field id="webhook_url" translate="label comment" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Webhook URL</label>
+                    <comment>Optional but recommended. Example: https://myupona.com/track-order/webhook/kd100</comment>
+                </field>
+            </group>
             <group id="sync" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Queue &amp; Sync</label>
                 <field id="auto_register_on_track_save" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
