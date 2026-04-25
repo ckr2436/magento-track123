@@ -76,6 +76,14 @@ class Router implements RouterInterface
             return $this->actionFactory->create(Forward::class);
         }
 
+        if ($identifier === 'track-order/webhook/kd100') {
+            $request->setModuleName('tracking')
+                ->setControllerName('webhook')
+                ->setActionName('kd100');
+
+            return $this->actionFactory->create(Forward::class);
+        }
+
         return null;
     }
 }
